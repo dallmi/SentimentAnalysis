@@ -513,7 +513,7 @@ def main():
     output_file = Path(OUTPUT_DIR) / f"llm_analysis_{timestamp}.xlsx"
 
     with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
-        # Sheet 1: Artikel-Übersicht
+        # Sheet 1: Articles Overview
         articles_summary = articles_df[[
             'url', 'title', 'category', 'cluster',
             'avg_sentiment', 'total_comments',
@@ -521,52 +521,53 @@ def main():
         ]].copy()
 
         articles_summary = articles_summary.sort_values('avg_sentiment', ascending=False)
-        articles_summary.to_excel(writer, sheet_name='Artikel', index=False)
+        articles_summary.to_excel(writer, sheet_name='Articles', index=False)
 
-        # Sheet 2: Kategorie-Analyse
+        # Sheet 2: Category Analysis
         category_analysis = articles_df.groupby('category').agg({
             'avg_sentiment': 'mean',
             'url': 'count',
             'positive_count': 'sum',
-            'negative_count': 'sum'
+            'negative_count': 'sum',
+            'neutral_count': 'sum'
         }).reset_index()
 
-        category_analysis.columns = ['Kategorie', 'Avg_Sentiment', 'Anzahl_Artikel',
-                                     'Positive_Kommentare', 'Negative_Kommentare']
+        category_analysis.columns = ['Category', 'Avg_Sentiment', 'Article_Count',
+                                     'Positive_Comments', 'Negative_Comments', 'Neutral_Comments']
         category_analysis = category_analysis.sort_values('Avg_Sentiment', ascending=False)
-        category_analysis.to_excel(writer, sheet_name='Kategorien', index=False)
+        category_analysis.to_excel(writer, sheet_name='Categories', index=False)
 
-        # Sheet 3: Cluster-Analyse (wenn verfügbar)
+        # Sheet 3: Cluster Analysis (if available)
         if 'cluster' in articles_df.columns:
             cluster_analysis = articles_df.groupby('cluster').agg({
                 'avg_sentiment': 'mean',
                 'url': 'count'
             }).reset_index()
 
-            cluster_analysis.columns = ['Cluster', 'Avg_Sentiment', 'Anzahl_Artikel']
+            cluster_analysis.columns = ['Cluster', 'Avg_Sentiment', 'Article_Count']
             cluster_analysis = cluster_analysis.sort_values('Avg_Sentiment', ascending=False)
             cluster_analysis.to_excel(writer, sheet_name='Clusters', index=False)
 
         # Sheet 4: Insights
         insights_data = []
 
-        # Top Artikel
+        # Top Articles
         top_articles = articles_df.nlargest(5, 'avg_sentiment')
         for _, art in top_articles.iterrows():
             insights_data.append({
-                'Typ': 'Top Artikel',
-                'Titel': art['title'],
-                'Kategorie': art['category'],
+                'Type': 'Top Article',
+                'Title': art['title'],
+                'Category': art['category'],
                 'Sentiment': f"{art['avg_sentiment']:+.3f}"
             })
 
-        # Worst Artikel
+        # Worst Articles
         worst_articles = articles_df.nsmallest(5, 'avg_sentiment')
         for _, art in worst_articles.iterrows():
             insights_data.append({
-                'Typ': 'Worst Artikel',
-                'Titel': art['title'],
-                'Kategorie': art['category'],
+                'Type': 'Worst Article',
+                'Title': art['title'],
+                'Category': art['category'],
                 'Sentiment': f"{art['avg_sentiment']:+.3f}"
             })
 
