@@ -1,0 +1,31 @@
+[
+  {
+    "url": "https://your-intranet.com/article1.aspx",
+    "title": "Article Title Here",
+    "content": "Full article content text goes here. This is the main text of the article that will be used for categorization and keyword extraction.",
+    "comments": [
+      {
+        "text": "This is the first comment text. It can be multiple sentences.",
+        "author": "John Doe",
+        "date": "2024-01-15"
+      },
+      {
+        "text": "This is another comment on the same article.",
+        "author": "Jane Smith",
+        "date": "2024-01-16"
+      }
+    ]
+  },
+  {
+    "url": "https://your-intranet.com/article2.aspx",
+    "title": "Another Article Title",
+    "content": "Content of the second article...",
+    "comments": [
+      {
+        "text": "Great article!",
+        "author": "Bob Johnson",
+        "date": "2024-01-17"
+      }
+    ]
+  }
+]
