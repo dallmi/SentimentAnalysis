@@ -43,6 +43,14 @@ except ImportError:
     print("⚠️  Topic Discovery nicht verfügbar")
     TOPIC_DISCOVERY_AVAILABLE = False
 
+# Importiere BERT Content Analyzer
+try:
+    from src.bert_content_analyzer import BERTContentAnalyzer
+    BERT_CONTENT_AVAILABLE = True
+except ImportError:
+    print("⚠️  BERT Content Analyzer nicht verfügbar")
+    BERT_CONTENT_AVAILABLE = False
+
 # Logging konfigurieren
 logging.basicConfig(
     level=logging.INFO,
@@ -271,6 +279,12 @@ def parse_arguments():
         type=str,
         default=None,
         help='Path to JSON file with complete extracted data (articles + comments). No Excel file needed!'
+    )
+
+    parser.add_argument(
+        '--use-bert-content',
+        action='store_true',
+        help='Use BERT embeddings for content analysis and clustering (more accurate, ~2-5 min slower)'
     )
 
     return parser.parse_args()
@@ -572,7 +586,73 @@ def main():
     logger.info(f"  Durchschnittliches Sentiment: {articles_df['avg_sentiment'].mean():.3f}")
 
     # 4. Kategorisiere Artikel nach INHALTS-THEMEN
-    if args.use_predefined:
+    if args.use_bert_content and BERT_CONTENT_AVAILABLE:
+        # BERT EMBEDDINGS: Semantisches Verständnis des Inhalts (RECOMMENDED!)
+        logger.info("\n[4/6] Analyze article content with BERT embeddings...")
+        logger.info("      (Semantic understanding - finds what content resonates with employees)")
+
+        bert_analyzer = BERTContentAnalyzer()
+
+        # Prepare texts for BERT analysis
+        texts = []
+        for idx, row in articles_df.iterrows():
+            title = row.get('title', '')
+            content = row.get('content', '')
+            # Combine title and content for better context
+            combined_text = f"{title}. {content}"
+            texts.append(combined_text)
+            # Generate content summary
+            articles_df.at[idx, 'content_summary'] = generate_topic_summary(title, content)
+
+        # Cluster articles by content using BERT embeddings
+        logger.info("Clustering articles by semantic similarity...")
+        cluster_results = bert_analyzer.cluster_by_content(
+            texts,
+            n_clusters=None,  # Auto-optimize
+            min_clusters=2,
+            max_clusters=min(10, len(texts) - 1)
+        )
+
+        # Assign cluster labels and create themes
+        cluster_labels = cluster_results['cluster_labels']
+        n_clusters = cluster_results['n_clusters']
+        silhouette = cluster_results['silhouette_score']
+
+        logger.info(f"✓ Found {n_clusters} content clusters")
+        logger.info(f"  Silhouette Score: {silhouette:.3f}")
+
+        # Create cluster themes
+        cluster_themes = {}
+        cluster_articles = {}
+
+        for cluster_id in range(n_clusters):
+            # Get articles in this cluster
+            cluster_indices = [i for i, label in enumerate(cluster_labels) if label == cluster_id]
+            cluster_texts = [texts[i] for i in cluster_indices]
+
+            # Extract theme
+            theme = bert_analyzer.get_cluster_theme(cluster_texts, max_keywords=3)
+            cluster_themes[cluster_id] = theme
+            cluster_articles[cluster_id] = cluster_indices
+
+            logger.info(f"  Cluster {cluster_id}: {theme} ({len(cluster_indices)} articles)")
+
+        # Assign to dataframe
+        for idx, cluster_id in enumerate(cluster_labels):
+            articles_df.at[idx, 'category'] = cluster_themes[cluster_id]
+            articles_df.at[idx, 'cluster_id'] = cluster_id
+
+        # Store BERT embeddings for potential further analysis
+        articles_df['bert_embedding'] = [cluster_results['embeddings'][i] for i in range(len(texts))]
+
+        logger.info(f"✓ BERT content analysis complete")
+        logger.info("\nContent Themes Found:")
+        category_counts = articles_df['category'].value_counts()
+        for cat, count in category_counts.items():
+            avg_sent = articles_df[articles_df['category'] == cat]['avg_sentiment'].mean()
+            logger.info(f"  - {cat}: {count} articles (avg sentiment: {avg_sent:+.3f})")
+
+    elif args.use_predefined:
         # SUPERVISED: Verwende vordefinierte Kategorien
         logger.info("\n[4/6] Kategorisiere Artikel nach Content-Themen (SUPERVISED)...")
         logger.info("      (Verwendet vordefinierte Kategorien: AI & Innovation, Employee Stories, etc.)")
