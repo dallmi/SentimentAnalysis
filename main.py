@@ -276,6 +276,51 @@ def parse_arguments():
     return parser.parse_args()
 
 
+def generate_topic_summary(title: str, content: str, max_length: int = 150) -> str:
+    """
+    Generate a high-level topic summary from article title and content.
+
+    Args:
+        title: Article title
+        content: Article content
+        max_length: Maximum length of summary
+
+    Returns:
+        Short summary of the main topic
+    """
+    # If content is empty, use title
+    if not content or len(content.strip()) < 20:
+        return title[:max_length] if title else "No content available"
+
+    # Combine title and first part of content
+    text = f"{title}. {content}"
+
+    # Take first sentences up to max_length
+    sentences = text.split('.')
+    summary = ""
+
+    for sentence in sentences:
+        sentence = sentence.strip()
+        if not sentence:
+            continue
+
+        if len(summary) + len(sentence) + 2 < max_length:
+            summary += sentence + ". "
+        else:
+            # Add partial sentence if we have room
+            remaining = max_length - len(summary) - 3
+            if remaining > 20 and not summary:  # At least get something
+                summary = sentence[:remaining] + "..."
+            break
+
+    # Clean up and return
+    summary = summary.strip()
+    if not summary:
+        summary = text[:max_length].rsplit(' ', 1)[0] + "..."
+
+    return summary
+
+
 def get_sentiment_rating(score: float) -> str:
     """
     Convert sentiment score to human-readable rating for stakeholders.
@@ -340,6 +385,7 @@ def main():
 
             # Convert to pandas DataFrame format
             data_rows = []
+            comment_details = []  # Store full comment details including author and date
             for article in extracted_data:
                 url = article.get('url', '')
                 comments = article.get('comments', [])
@@ -349,8 +395,15 @@ def main():
                         'url': url,
                         'comment': comment.get('text', '')
                     })
+                    comment_details.append({
+                        'url': url,
+                        'comment_text': comment.get('text', ''),
+                        'author': comment.get('author', 'Unknown'),
+                        'date': comment.get('date', '')
+                    })
 
             data = pd.DataFrame(data_rows)
+            comments_detail_df = pd.DataFrame(comment_details)
 
             if data.empty:
                 logger.error("❌ No comments found in extracted JSON!")
@@ -537,6 +590,8 @@ def main():
             articles_df.at[idx, 'category'] = primary_category
             # Store keywords as comma-separated string for pandas compatibility
             articles_df.at[idx, 'keywords'] = ', '.join(keywords) if keywords else ''
+            # Generate content summary
+            articles_df.at[idx, 'content_summary'] = generate_topic_summary(title, content)
 
         logger.info(f"✓ Kategorisierung abgeschlossen")
         logger.info("\nContent-Themen Verteilung:")
@@ -590,6 +645,10 @@ def main():
             articles_df.at[idx, 'category'] = topic_name
             # Store keywords as comma-separated string instead of list (pandas compatibility)
             articles_df.at[idx, 'keywords'] = ', '.join(keywords_list) if keywords_list else ''
+            # Generate content summary
+            title = articles_df.at[idx, 'title']
+            content = articles_df.at[idx, 'content']
+            articles_df.at[idx, 'content_summary'] = generate_topic_summary(title, content)
 
         logger.info(f"✓ {len(topic_results['valid_topics'])} Themen entdeckt")
         logger.info(f"  Silhouette Score: {topic_results['silhouette_score']:.3f}")
@@ -623,6 +682,8 @@ def main():
             articles_df.at[idx, 'category'] = primary_category
             # Store keywords as comma-separated string for pandas compatibility
             articles_df.at[idx, 'keywords'] = ', '.join(keywords) if keywords else ''
+            # Generate content summary
+            articles_df.at[idx, 'content_summary'] = generate_topic_summary(title, content)
 
         logger.info(f"✓ Kategorisierung abgeschlossen")
         category_counts = articles_df['category'].value_counts()
@@ -673,7 +734,52 @@ def main():
         articles_summary = articles_summary.sort_values('avg_sentiment', ascending=False)
         articles_summary.to_excel(writer, sheet_name='Articles', index=False)
 
-        # Sheet 2: Category Analysis
+        # Sheet 2: Detailed Comments Overview (NEW!)
+        if args.extracted_json and 'comments_detail_df' in locals():
+            logger.info("  Creating detailed comments overview...")
+
+            detail_rows = []
+            for idx, row in articles_df.iterrows():
+                url = row['url']
+                title = row.get('title', 'N/A')
+                category = row.get('category', 'Unknown')
+                cluster = row.get('cluster', 'N/A')
+                content_summary = row.get('content_summary', '')
+
+                # Get all comments for this article
+                article_comments = comments_detail_df[comments_detail_df['url'] == url]
+
+                if len(article_comments) == 0:
+                    # Article with no comments - still add one row
+                    detail_rows.append({
+                        'URL': url,
+                        'Title': title,
+                        'Category': category,
+                        'Cluster': cluster,
+                        'Content_Summary': content_summary,
+                        'Comment': '',
+                        'Author': '',
+                        'Date': ''
+                    })
+                else:
+                    # Add one row per comment
+                    for _, comment_row in article_comments.iterrows():
+                        detail_rows.append({
+                            'URL': url,
+                            'Title': title,
+                            'Category': category,
+                            'Cluster': cluster,
+                            'Content_Summary': content_summary,
+                            'Comment': comment_row['comment_text'],
+                            'Author': comment_row['author'],
+                            'Date': comment_row['date']
+                        })
+
+            detail_df = pd.DataFrame(detail_rows)
+            detail_df.to_excel(writer, sheet_name='Comments_Detail', index=False)
+            logger.info(f"  ✓ Created Comments_Detail sheet with {len(detail_df)} rows")
+
+        # Sheet 3 (or 4): Category Analysis
         category_analysis = articles_df.groupby('category').agg({
             'avg_sentiment': 'mean',
             'url': 'count',
@@ -696,7 +802,7 @@ def main():
         category_analysis = category_analysis.sort_values('Avg_Sentiment', ascending=False)
         category_analysis.to_excel(writer, sheet_name='Categories', index=False)
 
-        # Sheet 3: Cluster Analysis (if available)
+        # Sheet 4 (or 5): Cluster Analysis (if available)
         if 'cluster' in articles_df.columns:
             cluster_analysis = articles_df.groupby('cluster').agg({
                 'avg_sentiment': 'mean',
@@ -715,7 +821,7 @@ def main():
             cluster_analysis = cluster_analysis.sort_values('Avg_Sentiment', ascending=False)
             cluster_analysis.to_excel(writer, sheet_name='Clusters', index=False)
 
-        # Sheet 4: Insights
+        # Sheet 5 (or 6): Insights
         insights_data = []
 
         # Top Articles
