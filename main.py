@@ -349,7 +349,7 @@ def main():
             url = row['url']
             logger.info(f"  Scraping {idx+1}/{len(grouped_data)}: {url}")
 
-            article_data = scraper.scrape_article(url)
+            article_data = scraper.scrape_url(url)
             article_data['url'] = url
             article_data['comments'] = row['comment']
             articles.append(article_data)
