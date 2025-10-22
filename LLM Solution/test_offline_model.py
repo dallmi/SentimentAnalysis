@@ -38,6 +38,7 @@ def test_model_availability():
 
     # Suche nach Model-Dateien
     model_dirs = [
+        models_dir / "sentiment-multilingual",  # Trainiertes Sentiment-Model
         models_dir / "distilbert-multilingual",
         models_dir / "distilbert-small"
     ]
@@ -92,12 +93,15 @@ def test_offline_mode():
         if analyzer.mode == 'distilbert':
             print("\n✓ DistilBERT Model erfolgreich geladen (offline)")
             return True
+        elif analyzer.mode == 'bert':
+            print("\n✓ BERT Model erfolgreich geladen (offline)")
+            return True
         elif analyzer.mode == 'lexicon':
             print("\n⚠ Fallback auf Lexikon-Modus")
-            print("  (DistilBERT nicht verfügbar, aber funktioniert)")
+            print("  (Transformer-Model nicht verfügbar, aber funktioniert)")
             return True
         else:
-            print("\n✗ Unbekannter Modus")
+            print(f"\n✗ Unbekannter Modus: {analyzer.mode}")
             return False
 
     except Exception as e:
@@ -151,8 +155,8 @@ def test_multilingual_analysis():
     print(f"\n{'='*70}")
     print(f"Accuracy: {correct}/{total} = {accuracy:.1%}")
 
-    if analyzer.mode == 'distilbert':
-        threshold = 0.75  # DistilBERT sollte >75% haben
+    if analyzer.mode in ['distilbert', 'bert']:
+        threshold = 0.75  # Transformer-Models sollten >75% haben
     else:
         threshold = 0.70  # Lexikon-Modus etwas niedriger
 
@@ -240,8 +244,8 @@ def test_performance():
     print(f"  Durchschnitt: {avg_batch_time*1000:.2f} ms pro Text")
     print(f"  Durchsatz: {1/avg_batch_time:.1f} Texte/Sekunde")
 
-    if analyzer.mode == 'distilbert':
-        print(f"\nModus: DistilBERT (erwartbar: 10-100 ms/Text)")
+    if analyzer.mode in ['distilbert', 'bert']:
+        print(f"\nModus: {analyzer.mode.upper()} (erwartbar: 10-100 ms/Text)")
     else:
         print(f"\nModus: Lexikon (erwartbar: <1 ms/Text)")
 
