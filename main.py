@@ -297,8 +297,8 @@ def main():
 
     # 1. Lade Daten
     logger.info("\n[1/6] Lade Daten aus Excel...")
-    data_loader = DataLoader()
-    data = data_loader.load_excel(input_file, args.url_column, args.comment_column)
+    data_loader = DataLoader(input_file)
+    data = data_loader.load_excel(args.url_column, args.comment_column)
 
     if data.empty:
         logger.error("❌ Keine Daten geladen!")
