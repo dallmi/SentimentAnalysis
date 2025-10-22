@@ -35,38 +35,43 @@ python main_with_llm.py --input data/input/meine_artikel.xlsx
 
 ### Zwei Modi:
 
-#### Mode 1: Standard (Vordefinierte Kategorien) - EMPFOHLEN
+#### Mode 1: Automatische Themen-Entdeckung - STANDARD ⭐
 
 ```bash
-# Verwendet 10 vordefinierte Content-Themen
+# Entdeckt automatisch was die Artikel behandeln (DEFAULT!)
 python main_with_llm.py --input data/input/meine_artikel.xlsx
 ```
 
-→ Kategorien: Employee Stories, AI & Innovation, Events & Networking, etc.
+→ System findet selbst heraus über was Artikel geschrieben wurden
+→ Keine vordefinierten Kategorien nötig
+→ **EMPFOHLEN** für die meisten Anwendungsfälle
 
-#### Mode 2: Automatische Themen-Entdeckung 🆕
+#### Mode 2: Vordefinierte Kategorien
 
 ```bash
-# Entdeckt automatisch was die Artikel behandeln
-python main_with_llm.py --input data/input/meine_artikel.xlsx --discover-topics
+# Verwendet 10 vordefinierte Content-Themen
+python main_with_llm.py --input data/input/meine_artikel.xlsx --use-predefined
 ```
 
-→ System findet selbst heraus über was Artikel geschrieben wurden
-→ Gut wenn du nicht weisst welche Themen zu erwarten sind
+→ Kategorien: Employee Stories, AI & Innovation, Events & Networking, etc.
+→ Gut für konsistente Quartals-Berichte
 
 **Siehe [CATEGORIZATION_MODES.md](CATEGORIZATION_MODES.md) für Details zu beiden Modi!**
 
 ### Weitere Optionen:
 
 ```bash
+# Mehr Themen entdecken (detaillierter)
+python main_with_llm.py --input data/input/meine_artikel.xlsx --num-topics 15
+
+# Weniger Themen (grobe Übersicht)
+python main_with_llm.py --input data/input/meine_artikel.xlsx --num-topics 5
+
 # Schneller Modus (Lexikon statt LLM - geringere Genauigkeit)
 python main_with_llm.py --input data/input/meine_artikel.xlsx --no-llm
 
 # Ohne Web Scraping (nur Kommentar-Analyse)
 python main_with_llm.py --input data/input/meine_artikel.xlsx --no-scraping
-
-# Automatische Entdeckung mit 15 Themen (statt 10)
-python main_with_llm.py --input data/input/meine_artikel.xlsx --discover-topics --num-topics 15
 ```
 
 ## 📈 3. Ergebnis öffnen

@@ -4,43 +4,12 @@
 
 The system now supports **two different ways** to categorize your articles:
 
-### 1️⃣ **Supervised Mode** (Predefined Categories) - DEFAULT
-
-Uses predefined content themes that you specify in advance.
-
-**When to use:**
-- ✅ You know what topics to expect (AI, Employee Stories, Events, etc.)
-- ✅ You want consistent categories across time periods
-- ✅ You want to track specific themes you care about
-- ✅ You want to compare against your content strategy
-
-**How it works:**
-- Uses 10 predefined categories (configurable in `config/settings.py`)
-- Matches article text against keyword lists
-- Categories: AI & Innovation, Employee Stories, Culture & Values, etc.
-
-**Command:**
-```bash
-python main_with_llm.py --input data/input/articles.xlsx
-```
-
-**Example Output:**
-```
-Content Theme         | Articles | Avg Sentiment
----------------------|----------|---------------
-Employee Stories     | 25       | +0.88
-Events & Networking  | 20       | +0.75
-AI & Innovation      | 30       | +0.45
-```
-
----
-
-### 2️⃣ **Unsupervised Mode** (Automatic Topic Discovery) - NEW! 🆕
+### 1️⃣ **Unsupervised Mode** (Automatic Topic Discovery) - DEFAULT ⭐
 
 Automatically discovers what your articles are about WITHOUT predefined categories.
 
 **When to use:**
-- ✅ You don't know what topics to expect
+- ✅ You don't know what topics to expect (DEFAULT!)
 - ✅ You want to discover emerging themes
 - ✅ Your content is diverse and unpredictable
 - ✅ You want data-driven insights rather than assumptions
@@ -52,9 +21,9 @@ Automatically discovers what your articles are about WITHOUT predefined categori
 - Automatically names topics based on top keywords
 - Discovers natural groupings in your data
 
-**Command:**
+**Command (DEFAULT):**
 ```bash
-python main_with_llm.py --input data/input/articles.xlsx --discover-topics
+python main_with_llm.py --input data/input/articles.xlsx
 ```
 
 **Example Output:**
@@ -69,40 +38,72 @@ Leadership Changes         | 8        | leadership, restructuring, change
 
 ---
 
-## 📊 Comparison: Supervised vs. Unsupervised
+### 2️⃣ **Supervised Mode** (Predefined Categories)
 
-| Aspect | Supervised | Unsupervised |
-|--------|-----------|--------------|
-| **Setup** | Define categories in advance | No setup needed |
-| **Categories** | Consistent, predictable | Data-driven, may vary |
-| **Best for** | Known topics, tracking trends | Discovery, exploration |
-| **Flexibility** | Must update keywords manually | Adapts automatically |
-| **Interpretability** | Easy to understand | Requires interpretation |
-| **Use case** | "Track performance of AI articles" | "What are people writing about?" |
+Uses predefined content themes that you specify in advance.
+
+**When to use:**
+- ✅ You know exactly what topics to expect
+- ✅ You want consistent categories across time periods
+- ✅ You want to track specific themes you care about
+- ✅ You want to compare against your content strategy
+
+**How it works:**
+- Uses 10 predefined categories (configurable in `config/settings.py`)
+- Matches article text against keyword lists
+- Categories: AI & Innovation, Employee Stories, Culture & Values, etc.
+
+**Command:**
+```bash
+python main_with_llm.py --input data/input/articles.xlsx --use-predefined
+```
+
+**Example Output:**
+```
+Content Theme         | Articles | Avg Sentiment
+---------------------|----------|---------------
+Employee Stories     | 25       | +0.88
+Events & Networking  | 20       | +0.75
+AI & Innovation      | 30       | +0.45
+```
+
+---
+
+## 📊 Comparison: Unsupervised vs. Supervised
+
+| Aspect | Unsupervised (DEFAULT) | Supervised |
+|--------|----------------------|-----------|
+| **Setup** | No setup needed ✅ | Define categories in advance |
+| **Categories** | Data-driven, may vary | Consistent, predictable |
+| **Best for** | Discovery, exploration ⭐ | Known topics, tracking trends |
+| **Flexibility** | Adapts automatically ✅ | Must update keywords manually |
+| **Interpretability** | Requires interpretation | Easy to understand |
+| **Use case** | "What are people writing about?" | "Track performance of AI articles" |
+| **Command** | `python main_with_llm.py --input file.xlsx` | `python main_with_llm.py --input file.xlsx --use-predefined` |
 
 ---
 
 ## 🚀 Usage Examples
 
-### Example 1: Standard Analysis with Predefined Categories
-
-```bash
-# Use default 10 predefined categories
-python main_with_llm.py --input data/input/q4_articles.xlsx
-```
-
-**Best for:** Regular quarterly reports, tracking known content themes
-
----
-
-### Example 2: Discover What Topics Actually Appear
+### Example 1: Discover What Topics Actually Appear (DEFAULT)
 
 ```bash
 # Let the system discover 10 topics automatically
-python main_with_llm.py --input data/input/q4_articles.xlsx --discover-topics
+python main_with_llm.py --input data/input/q4_articles.xlsx
 ```
 
-**Best for:** First-time analysis, understanding your content landscape
+**Best for:** First-time analysis, understanding your content landscape, most use cases
+
+---
+
+### Example 2: Use Predefined Categories
+
+```bash
+# Use predefined categories
+python main_with_llm.py --input data/input/q4_articles.xlsx --use-predefined
+```
+
+**Best for:** Regular quarterly reports, tracking known content themes
 
 ---
 
@@ -110,7 +111,7 @@ python main_with_llm.py --input data/input/q4_articles.xlsx --discover-topics
 
 ```bash
 # Discover 15 topics (more granular)
-python main_with_llm.py --input data/input/q4_articles.xlsx --discover-topics --num-topics 15
+python main_with_llm.py --input data/input/q4_articles.xlsx --num-topics 15
 ```
 
 **Best for:** Large datasets, finding niche topics
@@ -121,7 +122,7 @@ python main_with_llm.py --input data/input/q4_articles.xlsx --discover-topics --
 
 ```bash
 # Discover only 5 broad topics
-python main_with_llm.py --input data/input/q4_articles.xlsx --discover-topics --num-topics 5
+python main_with_llm.py --input data/input/q4_articles.xlsx --num-topics 5
 ```
 
 **Best for:** High-level overview, executive summaries
@@ -130,7 +131,31 @@ python main_with_llm.py --input data/input/q4_articles.xlsx --discover-topics --
 
 ## 🎯 Which Mode Should You Use?
 
-### Use **Supervised Mode** when:
+### Use **Unsupervised Mode** (DEFAULT) when:
+
+**Scenario 1: First-Time Analysis** (DEFAULT)
+> "I have 500 articles from the past year. What are they about?"
+
+→ Let the system discover natural topic groupings
+
+**Scenario 2: Finding Emerging Themes** (DEFAULT)
+> "Are there new topics employees are interested in that we're not tracking?"
+
+→ Discover topics automatically to find surprises
+
+**Scenario 3: Validating Assumptions** (DEFAULT)
+> "We think we publish a lot about AI. Is that actually true?"
+
+→ See what topics emerge naturally from the data
+
+**Scenario 4: Diverse Content** (DEFAULT)
+> "Our intranet has everything from recipes to software updates"
+
+→ Unsupervised mode handles unpredictable content better
+
+---
+
+### Use **Supervised Mode** (`--use-predefined`) when:
 
 **Scenario 1: Quarterly Content Performance**
 > "I want to see if our AI & Innovation articles improved compared to last quarter"
@@ -146,30 +171,6 @@ python main_with_llm.py --input data/input/q4_articles.xlsx --discover-topics --
 > "HR wants to know if their wellness articles are well-received"
 
 → Use predefined "Wellness & Benefits" category
-
----
-
-### Use **Unsupervised Mode** when:
-
-**Scenario 1: First-Time Analysis**
-> "I have 500 articles from the past year. What are they about?"
-
-→ Let the system discover natural topic groupings
-
-**Scenario 2: Finding Emerging Themes**
-> "Are there new topics employees are interested in that we're not tracking?"
-
-→ Discover topics automatically to find surprises
-
-**Scenario 3: Validating Assumptions**
-> "We think we publish a lot about AI. Is that actually true?"
-
-→ See what topics emerge naturally from the data
-
-**Scenario 4: Diverse Content**
-> "Our intranet has everything from recipes to software updates"
-
-→ Unsupervised mode handles unpredictable content better
 
 ---
 

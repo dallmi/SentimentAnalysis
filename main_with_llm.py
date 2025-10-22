@@ -238,16 +238,16 @@ def parse_arguments():
     )
 
     parser.add_argument(
-        '--discover-topics',
+        '--use-predefined',
         action='store_true',
-        help='Entdecke Themen automatisch statt vordefinierte Kategorien zu verwenden'
+        help='Verwende vordefinierte Kategorien statt automatische Themen-Entdeckung'
     )
 
     parser.add_argument(
         '--num-topics',
         type=int,
         default=10,
-        help='Anzahl Themen für automatische Entdeckung (Standard: 10)'
+        help='Anzahl Themen für automatische Entdeckung (Standard: 10, nur ohne --use-predefined)'
     )
 
     return parser.parse_args()
@@ -369,10 +369,35 @@ def main():
     logger.info(f"  Durchschnittliches Sentiment: {articles_df['avg_sentiment'].mean():.3f}")
 
     # 4. Kategorisiere Artikel nach INHALTS-THEMEN
-    if args.discover_topics and TOPIC_DISCOVERY_AVAILABLE:
-        # UNSUPERVISED: Entdecke Themen automatisch
-        logger.info(f"\n[4/6] Entdecke {args.num_topics} Themen automatisch (UNSUPERVISED)...")
+    if args.use_predefined:
+        # SUPERVISED: Verwende vordefinierte Kategorien
+        logger.info("\n[4/6] Kategorisiere Artikel nach Content-Themen (SUPERVISED)...")
+        logger.info("      (Verwendet vordefinierte Kategorien: AI & Innovation, Employee Stories, etc.)")
+        categorizer = ArticleCategorizer()
+
+        for idx, row in articles_df.iterrows():
+            title = row.get('title', '')
+            content = row.get('content', '')
+
+            # Kategorisiere nach Inhalt
+            category_scores = categorizer.categorize_by_content(title, content)
+            primary_category = categorizer.get_primary_category(category_scores)
+            keywords = categorizer.extract_keywords(title + ' ' + content, top_n=5)
+
+            articles_df.at[idx, 'category'] = primary_category
+            articles_df.at[idx, 'keywords'] = keywords
+
+        logger.info(f"✓ Kategorisierung abgeschlossen")
+        logger.info("\nContent-Themen Verteilung:")
+        category_counts = articles_df['category'].value_counts()
+        for cat, count in category_counts.head(10).items():
+            logger.info(f"  - {cat}: {count} Artikel")
+
+    elif TOPIC_DISCOVERY_AVAILABLE:
+        # UNSUPERVISED: Entdecke Themen automatisch (DEFAULT!)
+        logger.info(f"\n[4/6] Entdecke {args.num_topics} Themen automatisch (UNSUPERVISED - DEFAULT)...")
         logger.info("      (Keine vordefinierten Kategorien - entdeckt was Artikel tatsächlich behandeln)")
+        logger.info("      (Verwende --use-predefined für vordefinierte Kategorien)")
 
         discoverer = TopicDiscovery(num_topics=args.num_topics, min_articles_per_topic=2)
 
@@ -402,16 +427,15 @@ def main():
             logger.info(f"  - {topic_name}: {count} Artikel ({keywords})")
 
     else:
-        # SUPERVISED: Verwende vordefinierte Kategorien
-        logger.info("\n[4/6] Kategorisiere Artikel nach Content-Themen (SUPERVISED)...")
-        logger.info("      (Verwendet vordefinierte Kategorien: AI & Innovation, Employee Stories, etc.)")
+        # Fallback to supervised if topic discovery not available
+        logger.warning("⚠️  Topic Discovery nicht verfügbar, verwende vordefinierte Kategorien")
+        logger.info("\n[4/6] Kategorisiere Artikel nach Content-Themen (SUPERVISED - FALLBACK)...")
         categorizer = ArticleCategorizer()
 
         for idx, row in articles_df.iterrows():
             title = row.get('title', '')
             content = row.get('content', '')
 
-            # Kategorisiere nach Inhalt
             category_scores = categorizer.categorize_by_content(title, content)
             primary_category = categorizer.get_primary_category(category_scores)
             keywords = categorizer.extract_keywords(title + ' ' + content, top_n=5)
@@ -420,7 +444,6 @@ def main():
             articles_df.at[idx, 'keywords'] = keywords
 
         logger.info(f"✓ Kategorisierung abgeschlossen")
-        logger.info("\nContent-Themen Verteilung:")
         category_counts = articles_df['category'].value_counts()
         for cat, count in category_counts.head(10).items():
             logger.info(f"  - {cat}: {count} Artikel")
