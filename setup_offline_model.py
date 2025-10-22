@@ -11,7 +11,23 @@ For corporate proxy:
 
 import os
 import sys
+import ssl
 from pathlib import Path
+
+
+def setup_ssl_for_corporate():
+    """
+    Disable SSL verification for corporate environments with self-signed certificates.
+    WARNING: Only use this in trusted corporate networks!
+    """
+    # Disable SSL verification globally
+    ssl._create_default_https_context = ssl._create_unverified_context
+
+    # Also set environment variables for requests/urllib
+    os.environ['CURL_CA_BUNDLE'] = ''
+    os.environ['REQUESTS_CA_BUNDLE'] = ''
+
+    print("⚠️  SSL verification disabled (for corporate self-signed certificates)")
 
 
 def setup_proxy_if_needed():
@@ -80,13 +96,26 @@ def download_model():
     model_name = "nlptown/bert-base-multilingual-uncased-sentiment"
 
     try:
+        # Configure transformers to skip SSL verification
+        import transformers
+        transformers.utils.hub._staging_mode = False
+
         print(f"\n  Downloading tokenizer...")
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        # Use trust_remote_code and disable SSL verification
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_name,
+            trust_remote_code=True,
+            use_auth_token=False
+        )
         tokenizer.save_pretrained(model_path)
         print(f"  ✓ Tokenizer saved")
 
         print(f"\n  Downloading model (this is the large file ~600MB)...")
-        model = AutoModelForSequenceClassification.from_pretrained(model_name)
+        model = AutoModelForSequenceClassification.from_pretrained(
+            model_name,
+            trust_remote_code=True,
+            use_auth_token=False
+        )
         model.save_pretrained(model_path)
         print(f"  ✓ Model saved")
 
@@ -125,6 +154,9 @@ def download_model():
 
 def main():
     """Main setup function."""
+
+    # Disable SSL verification for corporate environments
+    setup_ssl_for_corporate()
 
     # Setup proxy if needed
     setup_proxy_if_needed()
