@@ -558,11 +558,17 @@ def main():
     sentiment_analyzer = EnhancedSentimentAnalyzer(use_llm=not args.no_llm)
 
     all_sentiments = []
+    comment_sentiment_map = {}  # Map comment text to sentiment result
+
     for idx, row in articles_df.iterrows():
         comments = row['comments']
 
         # Analysiere Kommentare
         sentiments = sentiment_analyzer.analyze_comments(comments)
+
+        # Store sentiment for each comment (for detail view)
+        for comment, sentiment in zip(comments, sentiments):
+            comment_sentiment_map[comment] = sentiment
 
         # Berechne Durchschnitt
         if sentiments:
@@ -844,13 +850,22 @@ def main():
                 else:
                     # Add one row per comment
                     for _, comment_row in article_comments.iterrows():
+                        comment_text = comment_row['comment_text']
+
+                        # Get sentiment for this comment
+                        sentiment_info = comment_sentiment_map.get(comment_text, {})
+                        sentiment_category = sentiment_info.get('category', 'unknown')
+                        sentiment_score = sentiment_info.get('score', 0.0)
+
                         detail_rows.append({
                             'URL': url,
                             'Title': title,
                             'Category': category,
                             'Cluster': cluster,
                             'Content_Summary': content_summary,
-                            'Comment': comment_row['comment_text'],
+                            'Comment': comment_text,
+                            'Comment_Sentiment': sentiment_category.capitalize(),
+                            'Sentiment_Score': round(sentiment_score, 3),
                             'Author': comment_row['author'],
                             'Date': comment_row['date']
                         })
