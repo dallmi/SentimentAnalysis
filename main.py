@@ -133,12 +133,14 @@ class ArticleClusterer:
 
         clusters = []
         for idx, row in articles_df.iterrows():
-            keywords = row.get('keywords', [])
+            keywords_str = row.get('keywords', '')
             category = row.get('category', 'Unknown')
 
             # Cluster-ID basierend auf Hauptkategorie + dominantes Keyword
-            if keywords:
-                cluster_id = f"{category}_{keywords[0]}"
+            # keywords is now a comma-separated string, so split it
+            if keywords_str:
+                keywords_list = [k.strip() for k in keywords_str.split(',')]
+                cluster_id = f"{category}_{keywords_list[0]}"
             else:
                 cluster_id = f"{category}_general"
 
@@ -391,7 +393,8 @@ def main():
             keywords = categorizer.extract_keywords(title + ' ' + content, top_n=5)
 
             articles_df.at[idx, 'category'] = primary_category
-            articles_df.at[idx, 'keywords'] = keywords
+            # Store keywords as comma-separated string for pandas compatibility
+            articles_df.at[idx, 'keywords'] = ', '.join(keywords) if keywords else ''
 
         logger.info(f"✓ Kategorisierung abgeschlossen")
         logger.info("\nContent-Themen Verteilung:")
@@ -440,8 +443,11 @@ def main():
         # Assign discovered topics to articles
         for idx, topic_id in enumerate(topic_results['topic_assignments']):
             topic_name = topic_results['topic_names'].get(topic_id, f'Topic {topic_id}')
+            keywords_list = topic_results['topic_keywords'].get(topic_id, [])
+
             articles_df.at[idx, 'category'] = topic_name
-            articles_df.at[idx, 'keywords'] = topic_results['topic_keywords'].get(topic_id, [])
+            # Store keywords as comma-separated string instead of list (pandas compatibility)
+            articles_df.at[idx, 'keywords'] = ', '.join(keywords_list) if keywords_list else ''
 
         logger.info(f"✓ {len(topic_results['valid_topics'])} Themen entdeckt")
         logger.info(f"  Silhouette Score: {topic_results['silhouette_score']:.3f}")
@@ -473,7 +479,8 @@ def main():
             keywords = categorizer.extract_keywords(title + ' ' + content, top_n=5)
 
             articles_df.at[idx, 'category'] = primary_category
-            articles_df.at[idx, 'keywords'] = keywords
+            # Store keywords as comma-separated string for pandas compatibility
+            articles_df.at[idx, 'keywords'] = ', '.join(keywords) if keywords else ''
 
         logger.info(f"✓ Kategorisierung abgeschlossen")
         category_counts = articles_df['category'].value_counts()
