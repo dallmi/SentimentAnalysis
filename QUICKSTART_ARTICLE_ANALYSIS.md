@@ -33,20 +33,40 @@ cd P:\IMPORTANT\Projects\SentimentAnalysis
 python main_with_llm.py --input data/input/meine_artikel.xlsx
 ```
 
-### Optionen:
+### Zwei Modi:
+
+#### Mode 1: Standard (Vordefinierte Kategorien) - EMPFOHLEN
 
 ```bash
-# Standard (mit LLM Model - hohe Genauigkeit)
+# Verwendet 10 vordefinierte Content-Themen
 python main_with_llm.py --input data/input/meine_artikel.xlsx
+```
 
+→ Kategorien: Employee Stories, AI & Innovation, Events & Networking, etc.
+
+#### Mode 2: Automatische Themen-Entdeckung 🆕
+
+```bash
+# Entdeckt automatisch was die Artikel behandeln
+python main_with_llm.py --input data/input/meine_artikel.xlsx --discover-topics
+```
+
+→ System findet selbst heraus über was Artikel geschrieben wurden
+→ Gut wenn du nicht weisst welche Themen zu erwarten sind
+
+**Siehe [CATEGORIZATION_MODES.md](CATEGORIZATION_MODES.md) für Details zu beiden Modi!**
+
+### Weitere Optionen:
+
+```bash
 # Schneller Modus (Lexikon statt LLM - geringere Genauigkeit)
 python main_with_llm.py --input data/input/meine_artikel.xlsx --no-llm
 
 # Ohne Web Scraping (nur Kommentar-Analyse)
 python main_with_llm.py --input data/input/meine_artikel.xlsx --no-scraping
 
-# Ohne Clustering
-python main_with_llm.py --input data/input/meine_artikel.xlsx --no-clustering
+# Automatische Entdeckung mit 15 Themen (statt 10)
+python main_with_llm.py --input data/input/meine_artikel.xlsx --discover-topics --num-topics 15
 ```
 
 ## 📈 3. Ergebnis öffnen

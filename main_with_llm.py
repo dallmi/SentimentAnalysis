@@ -34,6 +34,14 @@ except ImportError:
     from models.sentiment_model import LightweightSentimentAnalyzer
     LLM_AVAILABLE = False
 
+# Importiere Topic Discovery
+try:
+    from topic_discovery import TopicDiscovery
+    TOPIC_DISCOVERY_AVAILABLE = True
+except ImportError:
+    print("⚠️  Topic Discovery nicht verfügbar")
+    TOPIC_DISCOVERY_AVAILABLE = False
+
 # Logging konfigurieren
 logging.basicConfig(
     level=logging.INFO,
@@ -229,6 +237,19 @@ def parse_arguments():
         help='Überspringe Artikel-Clustering'
     )
 
+    parser.add_argument(
+        '--discover-topics',
+        action='store_true',
+        help='Entdecke Themen automatisch statt vordefinierte Kategorien zu verwenden'
+    )
+
+    parser.add_argument(
+        '--num-topics',
+        type=int,
+        default=10,
+        help='Anzahl Themen für automatische Entdeckung (Standard: 10)'
+    )
+
     return parser.parse_args()
 
 
@@ -348,26 +369,61 @@ def main():
     logger.info(f"  Durchschnittliches Sentiment: {articles_df['avg_sentiment'].mean():.3f}")
 
     # 4. Kategorisiere Artikel nach INHALTS-THEMEN
-    logger.info("\n[4/6] Kategorisiere Artikel nach Content-Themen...")
-    categorizer = ArticleCategorizer()
+    if args.discover_topics and TOPIC_DISCOVERY_AVAILABLE:
+        # UNSUPERVISED: Entdecke Themen automatisch
+        logger.info(f"\n[4/6] Entdecke {args.num_topics} Themen automatisch (UNSUPERVISED)...")
+        logger.info("      (Keine vordefinierten Kategorien - entdeckt was Artikel tatsächlich behandeln)")
 
-    for idx, row in articles_df.iterrows():
-        title = row.get('title', '')
-        content = row.get('content', '')
+        discoverer = TopicDiscovery(num_topics=args.num_topics, min_articles_per_topic=2)
 
-        # Kategorisiere nach Inhalt
-        category_scores = categorizer.categorize_by_content(title, content)
-        primary_category = categorizer.get_primary_category(category_scores)
-        keywords = categorizer.extract_keywords(title + ' ' + content, top_n=5)
+        # Prepare articles for topic discovery
+        articles_list = []
+        for idx, row in articles_df.iterrows():
+            articles_list.append({
+                'title': row.get('title', ''),
+                'content': row.get('content', ''),
+                'avg_sentiment': row.get('avg_sentiment', 0),
+            })
 
-        articles_df.at[idx, 'category'] = primary_category
-        articles_df.at[idx, 'keywords'] = keywords
+        # Discover topics
+        topic_results = discoverer.discover_topics(articles_list, text_field='content')
 
-    logger.info(f"✓ Kategorisierung abgeschlossen")
-    logger.info("\nContent-Themen Verteilung:")
-    category_counts = articles_df['category'].value_counts()
-    for cat, count in category_counts.head(10).items():
-        logger.info(f"  - {cat}: {count} Artikel")
+        # Assign discovered topics to articles
+        for idx, topic_id in enumerate(topic_results['topic_assignments']):
+            topic_name = topic_results['topic_names'].get(topic_id, f'Topic {topic_id}')
+            articles_df.at[idx, 'category'] = topic_name
+            articles_df.at[idx, 'keywords'] = topic_results['topic_keywords'].get(topic_id, [])
+
+        logger.info(f"✓ {len(topic_results['valid_topics'])} Themen entdeckt")
+        logger.info("\nEntdeckte Themen:")
+        for topic_id, topic_name in topic_results['valid_topics'].items():
+            count = topic_results['topic_sizes'][topic_id]
+            keywords = ', '.join(topic_results['topic_keywords'][topic_id][:3])
+            logger.info(f"  - {topic_name}: {count} Artikel ({keywords})")
+
+    else:
+        # SUPERVISED: Verwende vordefinierte Kategorien
+        logger.info("\n[4/6] Kategorisiere Artikel nach Content-Themen (SUPERVISED)...")
+        logger.info("      (Verwendet vordefinierte Kategorien: AI & Innovation, Employee Stories, etc.)")
+        categorizer = ArticleCategorizer()
+
+        for idx, row in articles_df.iterrows():
+            title = row.get('title', '')
+            content = row.get('content', '')
+
+            # Kategorisiere nach Inhalt
+            category_scores = categorizer.categorize_by_content(title, content)
+            primary_category = categorizer.get_primary_category(category_scores)
+            keywords = categorizer.extract_keywords(title + ' ' + content, top_n=5)
+
+            articles_df.at[idx, 'category'] = primary_category
+            articles_df.at[idx, 'keywords'] = keywords
+
+        logger.info(f"✓ Kategorisierung abgeschlossen")
+        logger.info("\nContent-Themen Verteilung:")
+        category_counts = articles_df['category'].value_counts()
+        for cat, count in category_counts.head(10).items():
+            logger.info(f"  - {cat}: {count} Artikel")
 
     # 5. Cluster Artikel
     if not args.no_clustering:
