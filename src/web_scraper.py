@@ -10,11 +10,16 @@ import logging
 from typing import Dict, Optional, List
 from urllib.parse import urlparse
 import sys
+import ssl
+import urllib3
 sys.path.append('..')
 from config.settings import (
-    PROXY_CONFIG, REQUEST_TIMEOUT, MAX_RETRIES, 
+    PROXY_CONFIG, REQUEST_TIMEOUT, MAX_RETRIES,
     USER_AGENT, DELAY_BETWEEN_REQUESTS
 )
+
+# Disable SSL warnings for corporate environments
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -23,20 +28,34 @@ logger = logging.getLogger(__name__)
 class WebScraper:
     """Scrapt Artikel-Inhalte von Intranet-URLs"""
     
-    def __init__(self, proxy_config: Optional[Dict] = None):
+    def __init__(self, proxy_config: Optional[Dict] = None, verify_ssl: bool = False):
         """
         Initialisiert den WebScraper
-        
+
         Args:
             proxy_config: Dictionary mit Proxy-Konfiguration
+            verify_ssl: SSL-Zertifikate verifizieren (False für Corporate Self-Signed Certs)
         """
         self.proxy_config = proxy_config or PROXY_CONFIG
+        self.verify_ssl = verify_ssl
         self.session = requests.Session()
-        self.session.headers.update({'User-Agent': USER_AGENT})
-        
+
+        # Enhanced headers for corporate environments
+        self.session.headers.update({
+            'User-Agent': USER_AGENT,
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9,de;q=0.8',
+            'Accept-Encoding': 'gzip, deflate',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1'
+        })
+
         if self.proxy_config and any(self.proxy_config.values()):
             self.session.proxies.update(self.proxy_config)
-            logger.info("Proxy konfiguriert")
+            logger.info("Proxy configured")
+
+        if not verify_ssl:
+            logger.warning("⚠️  SSL verification disabled (for corporate self-signed certificates)")
     
     def scrape_url(self, url: str) -> Dict[str, str]:
         """
@@ -62,9 +81,10 @@ class WebScraper:
                 logger.info(f"Scraping {url} (Versuch {attempt + 1}/{MAX_RETRIES})")
                 
                 response = self.session.get(
-                    url, 
+                    url,
                     timeout=REQUEST_TIMEOUT,
-                    verify=True  # SSL-Verifizierung, kann bei Bedarf deaktiviert werden
+                    verify=self.verify_ssl,  # Use instance setting for SSL verification
+                    allow_redirects=True
                 )
                 response.raise_for_status()
                 
@@ -132,8 +152,20 @@ class WebScraper:
                 result['error'] = "Connection Error"
                 
             except requests.exceptions.HTTPError as e:
-                logger.warning(f"HTTP Fehler bei {url}: {e}")
-                result['error'] = f"HTTP {e.response.status_code}"
+                status_code = e.response.status_code if e.response else 'Unknown'
+                logger.warning(f"HTTP Error scraping {url}: {status_code} {e}")
+                result['error'] = f"HTTP {status_code}"
+
+                # For 403 Forbidden, provide helpful context
+                if status_code == 403:
+                    logger.info("💡 Hint: 403 Forbidden often means:")
+                    logger.info("   - Authentication required (Windows/NTLM for intranet)")
+                    logger.info("   - Access permissions issue")
+                    logger.info("   - Try accessing the URL in your browser while on corporate network")
+
+                # Don't retry on 403/401 - these won't succeed without auth changes
+                if status_code in [401, 403]:
+                    break
                 
             except Exception as e:
                 logger.error(f"Unerwarteter Fehler bei {url}: {e}")

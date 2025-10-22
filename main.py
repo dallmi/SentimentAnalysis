@@ -343,7 +343,8 @@ def main():
     articles = []
     if not args.no_scraping:
         logger.info("\n[2/6] Scrape Artikel-Inhalte...")
-        scraper = WebScraper()
+        # Initialize scraper with SSL disabled for corporate self-signed certificates
+        scraper = WebScraper(verify_ssl=False)
 
         for idx, row in grouped_data.iterrows():
             url = row['url']
