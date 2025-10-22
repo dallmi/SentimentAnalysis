@@ -15,7 +15,7 @@ lib64/
 parts/
 sdist/
 var/
-wheels/
+# wheels/ - removed to allow LLM Solution wheels
 *.egg-info/
 .installed.cfg
 *.egg
