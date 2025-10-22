@@ -1,145 +1,145 @@
-# Sentiment Analysis System für Corporate Intranet Artikel
+# Sentiment Analysis System for Corporate Intranet Articles
 
-## Übersicht
-Vollautomatisches LLM-basiertes Sentiment Analysis System für Corporate Intranet Artikel. Das System analysiert Artikel-Inhalte, kategorisiert sie nach Content-Themen, führt unsupervised Topic Discovery durch und bewertet Kommentar-Sentiments mit mehrsprachigen BERT-Modellen.
+## Overview
+Fully automated LLM-based sentiment analysis system for corporate intranet articles. The system analyzes article content, categorizes by content themes, performs unsupervised topic discovery, and evaluates comment sentiments using multilingual BERT models.
 
 ## Key Features
-- **LLM-Powered Analysis**: BERT-basierte mehrsprachige Sentiment-Analyse (EN/DE/FR/IT)
-- **Auto-Clustering**: Automatische Topic Discovery mit Silhouette Score Optimierung (k=2-10)
-- **Offline-Deployment**: Vollständig offline lauffähig - keine HuggingFace API benötigt
-- **Content-Theme Kategorisierung**: 10 vordefinierte Content-Kategorien (AI, HR, Culture, etc.)
-- **Drei Analyse-Modi**: Auto-optimiert, Manuell, Vordefiniert
-- **Corporate Proxy Support**: Funktioniert in geschützten Netzwerk-Umgebungen
-- **Excel I/O**: Einfacher Import/Export für Business-User
+- **LLM-Powered Analysis**: BERT-based multilingual sentiment analysis (EN/DE/FR/IT)
+- **Auto-Clustering**: Automatic topic discovery with Silhouette Score optimization (k=2-10)
+- **Offline Deployment**: Fully offline capable - no HuggingFace API required
+- **Content-Theme Categorization**: 10 predefined content categories (AI, HR, Culture, etc.)
+- **Three Analysis Modes**: Auto-optimized, Manual, Predefined
+- **Corporate Proxy Support**: Works in protected network environments
+- **Excel I/O**: Simple import/export for business users
 
 ## Quick Start
 
 ### 1. Installation
 
-#### Virtuelle Umgebung erstellen
+#### Create virtual environment
 ```bash
 python3 -m venv venv
 source venv/bin/activate  # macOS/Linux
 ```
 
-#### Dependencies installieren
+#### Install dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-#### Offline-Modelle einrichten (einmalig)
+#### Set up offline models (one-time)
 ```bash
 python setup_offline_model.py
 ```
-Dies lädt das BERT-Modell (~600MB) herunter und speichert es lokal in `models/`.
+This downloads the BERT model (~600MB) and saves it locally in `models/`.
 
-### 2. Verwendung
+### 2. Usage
 
-#### Standard: Auto-Optimierte Topic Discovery (empfohlen)
+#### Standard: Auto-Optimized Topic Discovery (recommended)
 ```bash
-python main.py --input data/input/meine_artikel.xlsx
+python main.py --input data/input/my_articles.xlsx
 ```
-→ Testet automatisch k=2 bis k=10 Cluster und wählt optimales k mit Silhouette Score
+→ Automatically tests k=2 to k=10 clusters and selects optimal k using Silhouette Score
 
-#### Manuelle Anzahl Topics
+#### Manual Number of Topics
 ```bash
-python main.py --input data/input/meine_artikel.xlsx --manual-topics --num-topics 7
-```
-
-#### Vordefinierte Content-Kategorien
-```bash
-python main.py --input data/input/meine_artikel.xlsx --use-predefined
+python main.py --input data/input/my_articles.xlsx --manual-topics --num-topics 7
 ```
 
-### 3. Input-Format
+#### Predefined Content Categories
+```bash
+python main.py --input data/input/my_articles.xlsx --use-predefined
+```
 
-Excel-Datei mit folgenden Spalten:
-- **Spalte A**: Artikel-URLs
-- **Spalte B**: Kommentare
-- Mehrere Kommentare pro Artikel möglich (mehrere Zeilen)
+### 3. Input Format
+
+Excel file with the following columns:
+- **Column A**: Article URLs
+- **Column B**: Comments
+- Multiple comments per article possible (multiple rows)
 
 ### 4. Output
 
-Generierte Dateien in `data/output/`:
-- `results_TIMESTAMP.xlsx` - Detaillierte Analyse mit Sentiments
-- `summary_TIMESTAMP.xlsx` - Aggregierte Topic-Statistiken
-- `report_TIMESTAMP.html` - Interaktiver HTML-Report
+Generated files in `data/output/`:
+- `results_TIMESTAMP.xlsx` - Detailed analysis with sentiments
+- `summary_TIMESTAMP.xlsx` - Aggregated topic statistics
+- `report_TIMESTAMP.html` - Interactive HTML report
 
-## Dokumentation
+## Documentation
 
-Ausführliche Dokumentation verfügbar:
-- **[QUICKSTART.md](QUICKSTART.md)** - Schnellstart-Guide mit allen Modi
-- **[USAGE_GUIDE.md](USAGE_GUIDE.md)** - Detaillierte Verwendung
-- **[CLUSTER_OPTIMIZATION.md](CLUSTER_OPTIMIZATION.md)** - Silhouette Score Deep-Dive
+Comprehensive documentation available:
+- **[QUICKSTART.md](QUICKSTART.md)** - Quick start guide with all modes
+- **[USAGE_GUIDE.md](USAGE_GUIDE.md)** - Detailed usage
+- **[CLUSTER_OPTIMIZATION.md](CLUSTER_OPTIMIZATION.md)** - Silhouette Score deep-dive
 - **[CATEGORIZATION_MODES.md](CATEGORIZATION_MODES.md)** - Supervised vs Unsupervised
-- **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Fehlerbehandlung
+- **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Error handling
 
-## Architektur
+## Architecture
 
-### Projektstruktur
+### Project Structure
 ```
 SentimentAnalysis/
-├── main.py                          # Hauptprogramm (LLM-Version)
-├── setup_offline_model.py           # Offline-Modell Setup
+├── main.py                          # Main program (LLM version)
+├── setup_offline_model.py           # Offline model setup
 ├── config/
-│   └── settings.py                  # Konfiguration (Content-Themes, Proxy)
+│   └── settings.py                  # Configuration (content themes, proxy)
 ├── src/
-│   ├── data_loader.py               # Excel-Import
-│   ├── web_scraper.py               # Artikel-Scraping
-│   ├── article_categorizer.py       # Content-Theme Kategorisierung
-│   └── report_generator.py          # Report-Erstellung
+│   ├── data_loader.py               # Excel import
+│   ├── web_scraper.py               # Article scraping
+│   ├── article_categorizer.py       # Content-theme categorization
+│   └── report_generator.py          # Report generation
 ├── LLM Solution/
-│   ├── llm_sentiment_analyzer.py    # BERT Sentiment-Analyse
-│   ├── topic_discovery.py           # Unsupervised Topic Discovery
-│   └── offline_sentiment_analyzer.py # Offline BERT-Wrapper
+│   ├── llm_sentiment_analyzer.py    # BERT sentiment analysis
+│   ├── topic_discovery.py           # Unsupervised topic discovery
+│   └── offline_sentiment_analyzer.py # Offline BERT wrapper
 ├── models/
-│   └── bert-base-multilingual-uncased-sentiment/  # Lokales BERT-Modell (~600MB)
+│   └── bert-base-multilingual-uncased-sentiment/  # Local BERT model (~600MB)
 ├── data/
-│   ├── input/                       # Input Excel-Dateien
-│   └── output/                      # Generierte Reports
+│   ├── input/                       # Input Excel files
+│   └── output/                      # Generated reports
 └── archive/
-    ├── main_lightweight.py          # Alte lightweight Version
-    ├── QUICKSTART.md                # Alte Dokumentation
-    └── PROJECT_SUMMARY.md           # Alte Projekt-Übersicht
+    ├── main_lightweight.py          # Old lightweight version
+    ├── QUICKSTART.md                # Old documentation
+    └── PROJECT_SUMMARY.md           # Old project overview
 ```
 
-### Technologie-Stack
+### Technology Stack
 - **Sentiment Analysis**: nlptown/bert-base-multilingual-uncased-sentiment
 - **Topic Discovery**: TF-IDF + K-Means Clustering + Silhouette Score
-- **Sprachen**: Deutsch, Englisch, Französisch, Italienisch
-- **Content-Theme Kategorien**: 10 vordefinierte Themen (AI & Innovation, Employee Stories, Culture & Values, Learning & Development, Events & Networking, Product News, Business & Success, Wellness & Benefits, Organizational Change, CSR & Sustainability)
+- **Languages**: German, English, French, Italian
+- **Content-Theme Categories**: 10 predefined themes (AI & Innovation, Employee Stories, Culture & Values, Learning & Development, Events & Networking, Product News, Business & Success, Wellness & Benefits, Organizational Change, CSR & Sustainability)
 
-## Content-Theme Kategorien
+## Content-Theme Categories
 
-Das System verwendet 10 vordefinierte Content-Themes mit mehrsprachigen Keywords:
+The system uses 10 predefined content themes with multilingual keywords:
 
-1. **AI & Innovation** - KI, Machine Learning, Digitalisierung
-2. **Employee Stories** - Mitarbeiter-Portraits, Erfolgsgeschichten
-3. **Culture & Values** - Unternehmenskultur, Werte, Diversity
-4. **Learning & Development** - Training, Weiterbildung, Skills
-5. **Events & Networking** - Firmen-Events, Team-Building
-6. **Product News** - Produkt-Launches, Updates
-7. **Business & Success** - Geschäftsergebnisse, Meilensteine
-8. **Wellness & Benefits** - Work-Life Balance, Benefits
-9. **Organizational Change** - Restrukturierung, neue Strategien
-10. **CSR & Sustainability** - Nachhaltigkeit, soziale Verantwortung
+1. **AI & Innovation** - AI, Machine Learning, Digitalization
+2. **Employee Stories** - Employee portraits, success stories
+3. **Culture & Values** - Company culture, values, diversity
+4. **Learning & Development** - Training, education, skills
+5. **Events & Networking** - Company events, team-building
+6. **Product News** - Product launches, updates
+7. **Business & Success** - Business results, milestones
+8. **Wellness & Benefits** - Work-life balance, benefits
+9. **Organizational Change** - Restructuring, new strategies
+10. **CSR & Sustainability** - Sustainability, social responsibility
 
-Details siehe [config/settings.py:36-164](config/settings.py#L36-L164)
+See details in [config/settings.py:36-164](config/settings.py#L36-L164)
 
-## Cluster-Optimierung
+## Cluster Optimization
 
-Das System verwendet Silhouette Score zur automatischen Bestimmung der optimalen Cluster-Anzahl:
+The system uses Silhouette Score to automatically determine the optimal number of clusters:
 
-- **Range**: k=2 bis k=10
-- **Metrik**: Silhouette Score (-1 bis +1)
-- **Auswahl**: Höchster Score gewinnt
-- **Fallback**: Standardmäßig k=5 wenn keine klare Optimierung möglich
+- **Range**: k=2 to k=10
+- **Metric**: Silhouette Score (-1 to +1)
+- **Selection**: Highest score wins
+- **Fallback**: Default k=5 if no clear optimization possible
 
-Mehr Details in [CLUSTER_OPTIMIZATION.md](CLUSTER_OPTIMIZATION.md)
+More details in [CLUSTER_OPTIMIZATION.md](CLUSTER_OPTIMIZATION.md)
 
 ## Corporate Network Setup
 
-### Proxy-Konfiguration
+### Proxy Configuration
 In `config/settings.py`:
 ```python
 PROXY_CONFIG = {
@@ -148,48 +148,48 @@ PROXY_CONFIG = {
 }
 ```
 
-### Offline-Betrieb
-Das System benötigt **keine** Internet-Verbindung nach dem Setup:
-1. Modelle werden einmalig mit `setup_offline_model.py` heruntergeladen
-2. Alle Modelle liegen lokal in `models/` (~600MB)
-3. Keine HuggingFace API-Calls zur Laufzeit
+### Offline Operation
+The system requires **no** internet connection after setup:
+1. Models are downloaded once using `setup_offline_model.py`
+2. All models are stored locally in `models/` (~600MB)
+3. No HuggingFace API calls at runtime
 
-## Systemanforderungen
+## System Requirements
 
 - **Python**: 3.8+
-- **RAM**: Mindestens 4GB (BERT-Modell)
-- **Disk**: ~1GB (Modelle + Dependencies)
-- **Netzwerk**: Nur für initiales Setup (dann offline)
+- **RAM**: At least 4GB (BERT model)
+- **Disk**: ~1GB (models + dependencies)
+- **Network**: Only for initial setup (then offline)
 
 ## Troubleshooting
 
-### Häufige Probleme
+### Common Issues
 
 **"Model not found"**
 ```bash
-python setup_offline_model.py  # Modell neu herunterladen
+python setup_offline_model.py  # Re-download model
 ```
 
 **"Out of memory"**
-→ Großen Batch in kleinere Teile aufteilen oder mehr RAM zuweisen
+→ Split large batches into smaller parts or allocate more RAM
 
-**Proxy-Fehler**
-→ Proxy in `config/settings.py` konfigurieren
+**Proxy errors**
+→ Configure proxy in `config/settings.py`
 
-Vollständige Fehlerbehebung: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+Complete troubleshooting: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 
 ## Performance
 
-- **Sentiment-Analyse**: ~10-20 Artikel/Minute (abhängig von Hardware)
-- **Topic Discovery**: ~5-10 Sekunden für Auto-Optimierung (k=2-10)
-- **Total Runtime**: ~5-15 Minuten für 100 Artikel mit 500 Kommentaren
+- **Sentiment Analysis**: ~10-20 articles/minute (depending on hardware)
+- **Topic Discovery**: ~5-10 seconds for auto-optimization (k=2-10)
+- **Total Runtime**: ~5-15 minutes for 100 articles with 500 comments
 
-## Lizenz
+## License
 
-Interner Gebrauch - Corporate Intranet Analyse
+Internal use - Corporate Intranet Analysis
 
 ---
 
-**Version**: 2.0 (LLM-basiert mit Auto-Clustering)
-**Letzte Aktualisierung**: 2025-10-22
-**Archivierte Version**: Lightweight Version in `/archive/main_lightweight.py`
+**Version**: 2.0 (LLM-based with Auto-Clustering)
+**Last Updated**: 2025-10-22
+**Archived Version**: Lightweight version in `/archive/main_lightweight.py`

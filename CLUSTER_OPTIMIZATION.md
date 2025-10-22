@@ -1,32 +1,32 @@
-# Automatische Cluster-Optimierung mit Silhouette Score
+# Automatic Cluster Optimization with Silhouette Score
 
-## 🎯 Das Problem
+## 🎯 The Problem
 
-**Deine Frage:** "Wie wird die optimale Cluster-Größe bestimmt? Ich nehme an das funktioniert alles vollautomatisch z.B. mit einer Art Silhouette Score?"
+**Your Question:** "How is the optimal cluster size determined? I assume this all works automatically, e.g., with some kind of Silhouette Score?"
 
-**Antwort:** JETZT JA! 🎉
+**Answer:** NOW IT DOES! 🎉
 
-Ich habe automatische Cluster-Optimierung mit Silhouette Score implementiert.
+I have implemented automatic cluster optimization with Silhouette Score.
 
 ---
 
-## 📊 Drei Modi für Cluster-Anzahl
+## 📊 Three Modes for Cluster Count
 
-### 1️⃣ Automatisch Optimiert mit Silhouette Score (DEFAULT) ⭐⭐⭐
+### 1️⃣ Auto-Optimized with Silhouette Score (DEFAULT) ⭐⭐⭐
 
-System findet automatisch die optimale Anzahl Cluster.
+System automatically finds the optimal number of clusters.
 
 **Command (DEFAULT):**
 ```bash
 python main.py --input articles.xlsx
 ```
 
-**Wann verwenden:**
-- Erste Analyse - keine Ahnung wieviele Themen existieren (DEFAULT!)
-- Du willst die objektiv beste Clustering-Qualität
-- Die meisten Use Cases
+**When to use:**
+- First analysis - no idea how many topics exist (DEFAULT!)
+- You want the objectively best clustering quality
+- Most use cases
 
-**Was passiert:**
+**What happens:**
 ```
 Finding optimal cluster count (testing k=2 to k=10)...
   k=2: Silhouette score = 0.125
@@ -43,25 +43,25 @@ Finding optimal cluster count (testing k=2 to k=10)...
 
 ---
 
-### 2️⃣ Manuell
+### 2️⃣ Manual
 
-Du gibst die Anzahl Themen vor.
+You specify the number of topics.
 
 **Command:**
 ```bash
 python main.py --input articles.xlsx --manual-topics --num-topics 10
 ```
 
-**Wann verwenden:**
-- Du weisst ungefähr wieviele Themen du erwartest
-- Schnelle Analyse (keine Optimierungs-Suche)
-- Konsistenz über mehrere Läufe
+**When to use:**
+- You roughly know how many topics to expect
+- Quick analysis (no optimization search)
+- Consistency across multiple runs
 
 ---
 
-### 3️⃣ Vordefinierte Kategorien
+### 3️⃣ Predefined Categories
 
-Keine Cluster-Optimierung - verwendet fixe Kategorien aus config/settings.py.
+No cluster optimization - uses fixed categories from config/settings.py.
 
 **Command:**
 ```bash
@@ -70,42 +70,42 @@ python main.py --input articles.xlsx --use-predefined
 
 ---
 
-## 🔬 Was ist der Silhouette Score?
+## 🔬 What is the Silhouette Score?
 
-Der **Silhouette Score** misst wie gut ein Datenpunkt zu seinem Cluster passt im Vergleich zu anderen Clustern.
+The **Silhouette Score** measures how well a data point fits into its cluster compared to other clusters.
 
-### Formel für einen Punkt i:
+### Formula for a point i:
 
 ```
 s(i) = (b(i) - a(i)) / max(a(i), b(i))
 
-Wobei:
-- a(i) = Durchschnittliche Distanz zu anderen Punkten im GLEICHEN Cluster
-- b(i) = Durchschnittliche Distanz zum NÄCHSTEN Cluster
+Where:
+- a(i) = Average distance to other points in the SAME cluster
+- b(i) = Average distance to the NEAREST cluster
 ```
 
-### Score-Bedeutung:
+### Score Meaning:
 
-| Score | Bedeutung | Interpretation |
-|-------|-----------|----------------|
-| **+1.0** | Perfekt | Punkt ist weit von anderen Clustern entfernt |
-| **+0.7 bis +1.0** | Sehr gut | Klare Cluster-Trennung |
-| **+0.5 bis +0.7** | Gut | Solide Cluster-Struktur ⭐ |
-| **+0.25 bis +0.5** | Ok | Moderate Cluster-Trennung |
-| **0.0** | Schlecht | Punkt liegt zwischen Clustern |
-| **-1.0** | Sehr schlecht | Punkt ist im falschen Cluster |
+| Score | Meaning | Interpretation |
+|-------|---------|----------------|
+| **+1.0** | Perfect | Point is far from other clusters |
+| **+0.7 to +1.0** | Very good | Clear cluster separation |
+| **+0.5 to +0.7** | Good | Solid cluster structure ⭐ |
+| **+0.25 to +0.5** | Ok | Moderate cluster separation |
+| **0.0** | Poor | Point lies between clusters |
+| **-1.0** | Very poor | Point is in the wrong cluster |
 
-### Durchschnittlicher Silhouette Score:
+### Average Silhouette Score:
 
-Durchschnitt über alle Punkte → Gesamt-Qualität des Clusterings
+Average across all points → Overall quality of clustering
 
-**Optimal k:** Die Cluster-Anzahl mit dem höchsten durchschnittlichen Silhouette Score!
+**Optimal k:** The cluster count with the highest average Silhouette Score!
 
 ---
 
-## 📈 Beispiel-Output
+## 📈 Example Output
 
-### Auto-Optimiert Modus (DEFAULT) ⭐:
+### Auto-Optimized Mode (DEFAULT) ⭐:
 
 ```bash
 python main.py --input articles.xlsx
@@ -113,8 +113,8 @@ python main.py --input articles.xlsx
 
 **Output:**
 ```
-[4/6] Entdecke optimale Anzahl Themen automatisch (AUTO-OPTIMIERT - DEFAULT)...
-      (Verwendet Silhouette Score - testet k=2 bis k=10)
+[4/6] Discovering optimal number of topics automatically (AUTO-OPTIMIZED - DEFAULT)...
+      (Using Silhouette Score - testing k=2 to k=10)
 
 Finding optimal cluster count (testing k=2 to k=10)...
   k=2: Silhouette score = 0.125
@@ -133,10 +133,10 @@ Finding optimal cluster count (testing k=2 to k=10)...
 Clustering into 7 topics...
 Final Silhouette score: 0.529
 
-✓ 7 Themen entdeckt
+✓ 7 topics discovered
   Silhouette Score: 0.529
 
-Silhouette Scores pro Cluster-Anzahl:
+Silhouette Scores per cluster count:
   k=2: 0.125
   k=3: 0.243
   k=4: 0.318
@@ -147,7 +147,7 @@ Silhouette Scores pro Cluster-Anzahl:
   k=9: 0.445
   k=10: 0.412
 
-Entdeckte Themen:
+Discovered Topics:
   - Remote Work: 25 articles (remote, homeoffice, hybrid)
   - AI Tools: 28 articles (chatgpt, copilot, automation)
   - Team Culture: 15 articles (culture, teamwork, values)
@@ -157,31 +157,31 @@ Entdeckte Themen:
   - Business Results: 8 articles (quarter, revenue, growth)
 ```
 
-→ System hat k=7 als optimal erkannt (höchster Score: 0.529)
+→ System identified k=7 as optimal (highest score: 0.529)
 
 ---
 
-## ⚙️ Technische Details
+## ⚙️ Technical Details
 
-### Algorithmus:
+### Algorithm:
 
-1. **TF-IDF Vektorisierung** aller Artikel
-2. **Für jedes k von 2 bis 10:**
-   - Führe K-Means Clustering durch
-   - Berechne Silhouette Score
-   - Speichere Score
-3. **Wähle k mit höchstem Silhouette Score**
-4. **Clustere final mit optimal k**
+1. **TF-IDF Vectorization** of all articles
+2. **For each k from 2 to 10:**
+   - Perform K-Means Clustering
+   - Calculate Silhouette Score
+   - Store score
+3. **Select k with highest Silhouette Score**
+4. **Final clustering with optimal k**
 
-### Silhouette Berechnung:
+### Silhouette Calculation:
 
 ```python
 def calculate_silhouette(point_i, cluster_assignments):
-    # a(i): Durchschnittliche Distanz zu Punkten im gleichen Cluster
+    # a(i): Average distance to points in the same cluster
     same_cluster_points = [j for j in range(n) if cluster[j] == cluster[i]]
     a_i = mean_distance(point_i, same_cluster_points)
 
-    # b(i): Minimale durchschnittliche Distanz zu anderen Clustern
+    # b(i): Minimum average distance to other clusters
     b_i = min(
         mean_distance(point_i, other_cluster_points)
         for other_cluster in all_other_clusters
@@ -192,11 +192,11 @@ def calculate_silhouette(point_i, cluster_assignments):
 
     return s_i
 
-# Gesamt-Score: Durchschnitt über alle Punkte
+# Overall score: Average over all points
 silhouette_score = mean(s_i for all points)
 ```
 
-### Distanz-Metrik:
+### Distance Metric:
 
 ```python
 distance = 1 - cosine_similarity
@@ -204,186 +204,186 @@ distance = 1 - cosine_similarity
 cosine_similarity = dot_product / (magnitude_a * magnitude_b)
 ```
 
-→ Verwendet **Cosine Distance** weil wir TF-IDF Vektoren haben
+→ Uses **Cosine Distance** because we have TF-IDF vectors
 
 ---
 
-## 🎯 Wann welcher Modus?
+## 🎯 When to Use Which Mode?
 
-### Verwende `(DEFAULT - no flag needed)` wenn:
+### Use `(DEFAULT - no flag needed)` when:
 
-✅ **Erste Analyse** - keine Ahnung wieviele Themen
-✅ **Objektive Qualität** wichtiger als Geschwindigkeit
-✅ **Unbekannter Datensatz** - willst optimale Struktur finden
-✅ **Publikation/Präsentation** - brauchst best-practice Methode
+✅ **First analysis** - no idea how many topics
+✅ **Objective quality** more important than speed
+✅ **Unknown dataset** - want to find optimal structure
+✅ **Publication/Presentation** - need best-practice method
 
-**Beispiel:**
-> "Ich habe 200 Artikel aus dem letzten Jahr. Wieviele Themen gibt es?"
+**Example:**
+> "I have 200 articles from last year. How many topics are there?"
 
-→ `(DEFAULT - no flag needed)` findet objektiv die beste Anzahl
-
----
-
-### Verwende `--num-topics N` wenn:
-
-✅ **Schnelle Analyse** - keine Zeit für Optimierung
-✅ **Du weisst ungefähr** wieviele Themen (~10-15)
-✅ **Konsistenz** über Zeit wichtig
-✅ **Große Datasets** (>500 Artikel) - Optimierung dauert lange
-
-**Beispiel:**
-> "Ich will einen schnellen Überblick über ~10 Haupt-Themen"
-
-→ `--num-topics 10` ist schnell und gut genug
+→ `(DEFAULT - no flag needed)` objectively finds the best number
 
 ---
 
-### Verwende `--use-predefined` wenn:
+### Use `--num-topics N` when:
 
-✅ **Tracking** über Zeit - gleiche Kategorien immer
-✅ **Bekannte Themen** - AI, HR, Events, etc.
-✅ **Vergleichbarkeit** mit vorherigen Quartalen
+✅ **Quick analysis** - no time for optimization
+✅ **You roughly know** how many topics (~10-15)
+✅ **Consistency** over time important
+✅ **Large datasets** (>500 articles) - optimization takes long
 
-**Beispiel:**
-> "Ich will Q4 mit Q3 vergleichen - gleiche Kategorien"
+**Example:**
+> "I want a quick overview of ~10 main topics"
 
-→ `--use-predefined` garantiert Konsistenz
-
----
-
-## 📊 Performance-Vergleich
-
-| Modus | Dauer (100 Artikel) | Qualität | Konsistenz |
-|-------|---------------------|----------|------------|
-| `(DEFAULT - no flag needed)` | ~2-3 Minuten | ⭐⭐⭐⭐⭐ Optimal | ⭐⭐ Variiert |
-| `--num-topics 10` | ~30 Sekunden | ⭐⭐⭐⭐ Gut | ⭐⭐⭐⭐ Gut |
-| `--use-predefined` | ~20 Sekunden | ⭐⭐⭐ Ok | ⭐⭐⭐⭐⭐ Perfekt |
+→ `--num-topics 10` is fast and good enough
 
 ---
 
-## 🔍 Interpretation der Ergebnisse
+### Use `--use-predefined` when:
+
+✅ **Tracking** over time - same categories always
+✅ **Known topics** - AI, HR, Events, etc.
+✅ **Comparability** with previous quarters
+
+**Example:**
+> "I want to compare Q4 with Q3 - same categories"
+
+→ `--use-predefined` guarantees consistency
+
+---
+
+## 📊 Performance Comparison
+
+| Mode | Duration (100 Articles) | Quality | Consistency |
+|------|-------------------------|---------|-------------|
+| `(DEFAULT - no flag needed)` | ~2-3 minutes | ⭐⭐⭐⭐⭐ Optimal | ⭐⭐ Varies |
+| `--num-topics 10` | ~30 seconds | ⭐⭐⭐⭐ Good | ⭐⭐⭐⭐ Good |
+| `--use-predefined` | ~20 seconds | ⭐⭐⭐ Ok | ⭐⭐⭐⭐⭐ Perfect |
+
+---
+
+## 🔍 Interpreting the Results
 
 ### Silhouette Score = 0.7+
 
-**Bedeutung:** Exzellente Cluster-Trennung
+**Meaning:** Excellent cluster separation
 
-**Was tun:** Perfekt! Nutze diese Clustering-Struktur.
+**What to do:** Perfect! Use this clustering structure.
 
-**Beispiel:**
+**Example:**
 ```
 k=5: Silhouette score = 0.742 ← OPTIMAL
 ```
 
-→ 5 sehr gut getrennte Themen-Cluster
+→ 5 very well-separated topic clusters
 
 ---
 
 ### Silhouette Score = 0.5-0.7
 
-**Bedeutung:** Gute Cluster-Qualität ✅
+**Meaning:** Good cluster quality ✅
 
-**Was tun:** Solide Ergebnisse, kannst damit arbeiten.
+**What to do:** Solid results, you can work with this.
 
-**Beispiel:**
+**Example:**
 ```
 k=7: Silhouette score = 0.529 ← OPTIMAL
 ```
 
-→ 7 gut definierte Themen, vernünftige Trennung
+→ 7 well-defined topics, reasonable separation
 
 ---
 
 ### Silhouette Score = 0.25-0.5
 
-**Bedeutung:** Moderate Cluster-Qualität
+**Meaning:** Moderate cluster quality
 
-**Was tun:**
-- Akzeptabel für erste Analyse
-- Erwäge mehr/weniger Cluster zu testen
-- Prüfe ob Daten wirklich natürliche Gruppierungen haben
+**What to do:**
+- Acceptable for initial analysis
+- Consider testing more/fewer clusters
+- Check if data really has natural groupings
 
-**Beispiel:**
+**Example:**
 ```
 k=12: Silhouette score = 0.343
 ```
 
-→ Vielleicht zu viele Cluster? Themen überlappen sich
+→ Perhaps too many clusters? Topics overlap
 
 ---
 
 ### Silhouette Score < 0.25
 
-**Bedeutung:** Schwache Cluster-Struktur ⚠️
+**Meaning:** Weak cluster structure ⚠️
 
-**Was tun:**
-- Daten haben möglicherweise keine klare Cluster-Struktur
-- Versuche weniger Cluster
-- Erwäge vordefinierte Kategorien statt unsupervised
+**What to do:**
+- Data may not have clear cluster structure
+- Try fewer clusters
+- Consider predefined categories instead of unsupervised
 
-**Beispiel:**
+**Example:**
 ```
 k=15: Silhouette score = 0.187
 ```
 
-→ Zu viele Cluster für diese Daten
+→ Too many clusters for this data
 
 ---
 
 ## 🚀 Best Practices
 
-### 1. Erste Analyse: Auto-Optimierung verwenden
+### 1. First Analysis: Use Auto-Optimization
 
 ```bash
-# Finde optimale Cluster-Anzahl
+# Find optimal cluster count
 python main.py --input articles.xlsx (DEFAULT - no flag needed)
 ```
 
-**Output sagt:** k=7 ist optimal mit Score 0.529
+**Output says:** k=7 is optimal with score 0.529
 
 ---
 
-### 2. Schnelle Folge-Analysen: Optimales k nutzen
+### 2. Quick Follow-Up Analyses: Use Optimal k
 
 ```bash
-# Verwende gefundenes optimal k direkt
+# Use found optimal k directly
 python main.py --input articles_next_month.xlsx --num-topics 7
 ```
 
-→ Schneller, nutzt optimales k von vorheriger Analyse
+→ Faster, uses optimal k from previous analysis
 
 ---
 
-### 3. Quarterly Reports: Vordefinierte Kategorien
+### 3. Quarterly Reports: Predefined Categories
 
 ```bash
-# Konsistente Kategorien über Zeit
+# Consistent categories over time
 python main.py --input q1_articles.xlsx --use-predefined
 python main.py --input q2_articles.xlsx --use-predefined
 ```
 
-→ Gleiche Kategorien → vergleichbare Reports
+→ Same categories → comparable reports
 
 ---
 
-## 💡 Häufige Fragen
+## 💡 Frequently Asked Questions
 
-### "Warum testet das System nur k=2 bis k=10?"
+### "Why does the system only test k=2 to k=10?"
 
-**Antwort:**
-- **k < 2:** Macht keinen Sinn (mindestens 2 Cluster)
-- **k=2 bis k=10:** Optimaler Bereich für die meisten Anwendungsfälle
-- **k > 10:** Meist zu viele kleine Cluster, schwer interpretierbar
-- **Grenze:** max_k = min(10, n_articles / 3)
-  - Bei 30+ Artikeln: testet k=2 bis k=10
-  - Bei 15 Artikeln: testet k=2 bis k=5 (mindestens 3 Artikel pro Cluster)
+**Answer:**
+- **k < 2:** Makes no sense (at least 2 clusters)
+- **k=2 to k=10:** Optimal range for most use cases
+- **k > 10:** Usually too many small clusters, hard to interpret
+- **Limit:** max_k = min(10, n_articles / 3)
+  - With 30+ articles: tests k=2 to k=10
+  - With 15 articles: tests k=2 to k=5 (at least 3 articles per cluster)
 
 ---
 
-### "Kann ich andere k-Werte testen lassen?"
+### "Can I test different k values?"
 
-**Aktuell:** Nein, Range ist fest 2-20
+**Currently:** No, range is fixed 2-20
 
-**Workaround:** Teste manuell verschiedene k:
+**Workaround:** Test different k manually:
 ```bash
 python main.py --input articles.xlsx --num-topics 25
 # Check Silhouette score in output
@@ -391,63 +391,63 @@ python main.py --input articles.xlsx --num-topics 25
 
 ---
 
-### "Ist höherer Silhouette Score immer besser?"
+### "Is a higher Silhouette Score always better?"
 
-**Ja, ABER:**
-- Score 0.8 mit k=2 → zu grobe Einteilung
-- Score 0.55 mit k=8 → bessere Granularität
+**Yes, BUT:**
+- Score 0.8 with k=2 → too coarse grouping
+- Score 0.55 with k=8 → better granularity
 
-**Balance:** Hoher Score UND sinnvolle Anzahl Cluster
-
----
-
-### "Warum dauert (DEFAULT - no flag needed) länger?"
-
-**Grund:** Führt K-Means 19x aus (k=2 bis k=20)
-
-**Dauer:**
-- 50 Artikel: ~1 Minute
-- 100 Artikel: ~2-3 Minuten
-- 200 Artikel: ~5-8 Minuten
-
-**Tipp:** Für große Datasets (>200) verwende manuelles k
+**Balance:** High score AND sensible number of clusters
 
 ---
 
-### "Was wenn alle Scores niedrig sind (<0.3)?"
+### "Why does (DEFAULT - no flag needed) take longer?"
 
-**Bedeutung:** Daten haben keine klare Cluster-Struktur
+**Reason:** Runs K-Means 19x (k=2 to k=20)
 
-**Optionen:**
-1. Verwende vordefinierte Kategorien (`--use-predefined`)
-2. Akzeptiere schwache Cluster für explorative Analyse
-3. Prüfe Daten-Qualität (zu kurze Texte? zu ähnliche Artikel?)
+**Duration:**
+- 50 articles: ~1 minute
+- 100 articles: ~2-3 minutes
+- 200 articles: ~5-8 minutes
+
+**Tip:** For large datasets (>200) use manual k
 
 ---
 
-## 📖 Zusammenfassung
+### "What if all scores are low (<0.3)?"
 
-**Du hattest Recht!** 🎉
+**Meaning:** Data has no clear cluster structure
 
-Die optimale Cluster-Größe wird JETZT vollautomatisch mit Silhouette Score bestimmt:
+**Options:**
+1. Use predefined categories (`--use-predefined`)
+2. Accept weak clusters for exploratory analysis
+3. Check data quality (too short texts? too similar articles?)
+
+---
+
+## 📖 Summary
+
+**You were right!** 🎉
+
+The optimal cluster size is NOW fully automatically determined with Silhouette Score:
 
 ```bash
-# Automatische Optimierung
+# Automatic optimization
 python main.py --input articles.xlsx (DEFAULT - no flag needed)
 ```
 
-**Wie es funktioniert:**
-1. Testet k=2 bis k=20 Cluster
-2. Berechnet Silhouette Score für jedes k
-3. Wählt k mit höchstem Score
-4. Zeigt dir alle Scores im Log
+**How it works:**
+1. Tests k=2 to k=20 clusters
+2. Calculates Silhouette Score for each k
+3. Selects k with highest score
+4. Shows you all scores in the log
 
-**Ergebnis:**
-- Objektiv beste Cluster-Anzahl
-- Hohe Clustering-Qualität
-- Keine manuelle Auswahl nötig
+**Result:**
+- Objectively best cluster count
+- High clustering quality
+- No manual selection needed
 
-**Empfehlung:**
-- Erste Analyse: `(DEFAULT - no flag needed)` ⭐
-- Schnelle Analyse: `--num-topics 10`
-- Konsistenz: `--use-predefined`
+**Recommendation:**
+- First analysis: `(DEFAULT - no flag needed)` ⭐
+- Quick analysis: `--num-topics 10`
+- Consistency: `--use-predefined`

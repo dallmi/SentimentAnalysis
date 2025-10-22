@@ -1,17 +1,17 @@
-# Quickstart: Artikel-Analyse mit LLM
+# Quickstart: Article Analysis with LLM
 
-## 🎯 Dein Ziel
+## 🎯 Your Goal
 
-URLs von News & Events Artikeln analysieren und verstehen:
-- **Welche Artikel-Typen bekommen positives Feedback?**
-- **Welche Artikel-Typen bekommen negatives Feedback?**
+Analyze and understand URLs from News & Events articles:
+- **Which article types receive positive feedback?**
+- **Which article types receive negative feedback?**
 
-## 📊 1. Excel-Datei vorbereiten
+## 📊 1. Prepare Excel File
 
-Erstelle eine Excel-Datei mit 2 Spalten:
+Create an Excel file with 2 columns:
 
 ```
-Spalte A (URL)                              | Spalte B (Kommentar)
+Column A (URL)                             | Column B (Comment)
 -------------------------------------------|---------------------------
 https://intranet.firma.de/artikel/123      | Great article!
 https://intranet.firma.de/artikel/123      | Very helpful
@@ -19,91 +19,91 @@ https://intranet.firma.de/artikel/456      | Not clear
 https://intranet.firma.de/artikel/789      | Excellent!
 ```
 
-**Speichere die Datei in:**
+**Save the file in:**
 ```
 data/input/meine_artikel.xlsx
 ```
 
-## 🚀 2. Analyse starten
+## 🚀 2. Start Analysis
 
-### In Corporate-Umgebung (Windows):
+### In Corporate Environment (Windows):
 
 ```cmd
 cd P:\IMPORTANT\Projects\SentimentAnalysis
 python main.py --input data/input/meine_artikel.xlsx
 ```
 
-### Zwei Modi:
+### Two Modes:
 
-#### Mode 1: Auto-Optimiert (Silhouette Score) - STANDARD ⭐⭐⭐
+#### Mode 1: Auto-Optimized (Silhouette Score) - DEFAULT ⭐⭐⭐
 
 ```bash
-# Findet automatisch optimale Anzahl Themen (DEFAULT!)
+# Automatically finds optimal number of topics (DEFAULT!)
 python main.py --input data/input/meine_artikel.xlsx
 ```
 
-→ Testet k=2 bis k=10 Cluster
-→ Wählt optimal k mit Silhouette Score
-→ **BESTE QUALITÄT** - empfohlen für die meisten Anwendungsfälle
-→ Dauer: ~1-2 Minuten für 100 Artikel
+→ Tests k=2 to k=10 clusters
+→ Selects optimal k with Silhouette Score
+→ **BEST QUALITY** - recommended for most use cases
+→ Duration: ~1-2 minutes for 100 articles
 
-#### Mode 2: Manuelle Anzahl Themen
+#### Mode 2: Manual Number of Topics
 
 ```bash
-# Verwendet fixe Anzahl Themen (schneller)
+# Uses fixed number of topics (faster)
 python main.py --input data/input/meine_artikel.xlsx --manual-topics --num-topics 7
 ```
 
-→ Schneller (~30 Sekunden)
-→ Gut wenn du optimales k bereits kennst
+→ Faster (~30 seconds)
+→ Good if you already know the optimal k
 
-#### Mode 3: Vordefinierte Kategorien
+#### Mode 3: Predefined Categories
 
 ```bash
-# Verwendet 10 vordefinierte Content-Themen
+# Uses 10 predefined content topics
 python main.py --input data/input/meine_artikel.xlsx --use-predefined
 ```
 
-→ Kategorien: Employee Stories, AI & Innovation, Events & Networking, etc.
-→ Gut für konsistente Quartals-Berichte
+→ Categories: Employee Stories, AI & Innovation, Events & Networking, etc.
+→ Good for consistent quarterly reports
 
-**Siehe [CATEGORIZATION_MODES.md](CATEGORIZATION_MODES.md) für Details zu beiden Modi!**
+**See [CATEGORIZATION_MODES.md](CATEGORIZATION_MODES.md) for details on both modes!**
 
-### Weitere Optionen:
+### Additional Options:
 
 ```bash
-# Fixe Anzahl Themen (7) verwenden - schneller
+# Use fixed number of topics (7) - faster
 python main.py --input data/input/meine_artikel.xlsx --manual-topics --num-topics 7
 
-# Schneller Modus (Lexikon statt LLM - geringere Genauigkeit)
+# Fast mode (Lexicon instead of LLM - lower accuracy)
 python main.py --input data/input/meine_artikel.xlsx --no-llm
 
-# Ohne Web Scraping (nur Kommentar-Analyse)
+# Without web scraping (comment analysis only)
 python main.py --input data/input/meine_artikel.xlsx --no-scraping
 ```
 
-**💡 Neue Defaults:**
-- **Auto-Optimierung ist jetzt Standard!** Findet automatisch optimale Anzahl Themen (k=2 bis k=10)
-- Verwendet Silhouette Score für beste Clustering-Qualität
-→ Siehe [CLUSTER_OPTIMIZATION.md](CLUSTER_OPTIMIZATION.md) für Details
+**💡 New Defaults:**
+- **Auto-optimization is now default!** Automatically finds optimal number of topics (k=2 to k=10)
+- Uses Silhouette Score for best clustering quality
+→ See [CLUSTER_OPTIMIZATION.md](CLUSTER_OPTIMIZATION.md) for details
 
-## 📈 3. Ergebnis öffnen
+## 📈 3. Open Results
 
-Die Analyse erstellt eine Excel-Datei:
+The analysis creates an Excel file:
 ```
 data/output/llm_analysis_20251022_143022.xlsx
 ```
 
-**Diese Datei öffnen:**
+**Open this file:**
 ```cmd
 start data\output\llm_analysis_20251022_143022.xlsx
 ```
 
-## 📊 4. Ergebnisse interpretieren
+## 📊 4. Interpret Results
 
-### Sheet "Kategorien" - **Wichtigste Ansicht!**
+### Sheet "Kategorien" - **Most Important View!**
 
-Hier siehst du die Antwort auf deine Frage nach **Content-Themen** (nicht Abteilungen!):
+Here you see the answer to your question about **content topics** (not departments!):
 
 | Content Theme | Avg_Sentiment | Anzahl_Artikel | Positive_Kommentare | Negative_Kommentare |
 |---------------|---------------|----------------|---------------------|---------------------|
@@ -119,14 +119,14 @@ Hier siehst du die Antwort auf deine Frage nach **Content-Themen** (nicht Abteil
 | CSR & Sustainability | +0.55 | 8 | 52 | 12 |
 
 **Interpretation:**
-- ✅ **Employee Stories** funktionieren hervorragend! (+0.88)
-- ✅ **Events & Networking** kommen sehr gut an (+0.75)
-- ✅ **Wellness & Benefits** werden positiv aufgenommen (+0.68)
-- ✅ **Learning & Development** ist beliebt (+0.62)
-- ⚠️ **AI & Innovation** ist ok, könnte verständlicher sein (+0.45)
-- ⚠️ **Organizational Change** erzeugen negative Reaktionen (-0.15)
+- ✅ **Employee Stories** work excellently! (+0.88)
+- ✅ **Events & Networking** are very well received (+0.75)
+- ✅ **Wellness & Benefits** are received positively (+0.68)
+- ✅ **Learning & Development** is popular (+0.62)
+- ⚠️ **AI & Innovation** is okay, could be more understandable (+0.45)
+- ⚠️ **Organizational Change** generates negative reactions (-0.15)
 
-### Sheet "Clusters" - Detaillierte Themen-Gruppen
+### Sheet "Clusters" - Detailed Topic Groups
 
 | Cluster | Avg_Sentiment | Anzahl_Artikel |
 |---------|---------------|----------------|
@@ -137,39 +137,39 @@ Hier siehst du die Antwort auf deine Frage nach **Content-Themen** (nicht Abteil
 | Organizational Change_restructuring | -0.28 | 5 |
 
 **Interpretation:**
-- Employee interviews funktionieren hervorragend
-- Hackathon-Ankündigungen kommen sehr gut an
-- Sport- & Wellness-Events werden positiv aufgenommen
-- ChatGPT/AI-Themen erzeugen gemischte Reaktionen
-- Restructuring-News erzeugen negative Reaktionen
+- Employee interviews work excellently
+- Hackathon announcements are very well received
+- Sport & Wellness events are received positively
+- ChatGPT/AI topics generate mixed reactions
+- Restructuring news generates negative reactions
 
-### Sheet "Artikel" - Alle Artikel im Detail
+### Sheet "Artikel" - All Articles in Detail
 
-Vollständige Liste mit:
+Complete list with:
 - URL
-- Titel
-- Kategorie
+- Title
+- Category
 - Cluster
-- Durchschnittliches Sentiment
-- Anzahl Kommentare (positiv/negativ/neutral)
+- Average Sentiment
+- Number of comments (positive/negative/neutral)
 
-### Sheet "Insights" - Top & Worst Artikel
+### Sheet "Insights" - Top & Worst Articles
 
-- **Top 5 Artikel** mit bestem Feedback
-- **Worst 5 Artikel** mit schlechtestem Feedback
+- **Top 5 Articles** with best feedback
+- **Worst 5 Articles** with worst feedback
 
 ## 🎯 Actionable Insights
 
-Basierend auf den Ergebnissen kannst du:
+Based on the results you can:
 
-1. **Mehr von gut funktionierenden Artikel-Typen** veröffentlichen
-2. **Schlecht bewertete Artikel-Typen** verbessern oder vermeiden
-3. **Spezifische Themen identifizieren** die gut/schlecht ankommen
-4. **Content-Strategie anpassen**
+1. **Publish more of well-performing article types**
+2. **Improve or avoid poorly rated article types**
+3. **Identify specific topics** that are well/poorly received
+4. **Adjust content strategy**
 
-## ⚙️ Eigene Content-Themen hinzufügen
+## ⚙️ Add Your Own Content Topics
 
-Bearbeite [config/settings.py](config/settings.py):
+Edit [config/settings.py](config/settings.py):
 
 ```python
 CATEGORY_KEYWORDS = {
@@ -212,78 +212,78 @@ CATEGORY_KEYWORDS = {
 - Keywords: **English primary**, German secondary, French/Italian tertiary
 - Keywords match the **content/topic**, not the department!
 
-## 🔧 Performance-Tipps
+## 🔧 Performance Tips
 
-### Erste Verwendung (~60s Model Loading):
+### First Use (~60s Model Loading):
 ```
 [3/6] Sentiment-Analyse der Kommentare...
 Lade LLM Model (kann ~60s dauern)...
 ✓ LLM Model geladen (Mode: bert)
 ```
-→ **Normal!** Das Model wird nur einmal geladen.
+→ **Normal!** The model is loaded only once.
 
-### Viele Artikel (>100):
+### Many Articles (>100):
 ```bash
-# Verwende Lexikon-Modus (10x schneller)
+# Use lexicon mode (10x faster)
 python main.py --input datei.xlsx --no-llm
 ```
 
-### URLs nicht erreichbar:
+### URLs Not Reachable:
 ```bash
-# Überspringe Web Scraping (nur Kommentar-Analyse)
+# Skip web scraping (comment analysis only)
 python main.py --input datei.xlsx --no-scraping
 ```
 
-## 📝 Vollständige Dokumentation
+## 📝 Complete Documentation
 
-- **USAGE_GUIDE.md** - Ausführliche Anleitung mit allen Optionen
-- **LLM Solution/CORPORATE_DEPLOYMENT.md** - Setup-Guide für Corporate-Umgebung
-- **LLM Solution/README.md** - Technische Details zum LLM Model
+- **USAGE_GUIDE.md** - Comprehensive guide with all options
+- **LLM Solution/CORPORATE_DEPLOYMENT.md** - Setup guide for corporate environment
+- **LLM Solution/README.md** - Technical details about the LLM model
 
 ## 🆘 Troubleshooting
 
-### "Keine Input-Datei gefunden"
-→ Lege Excel-Datei in `data/input/` ab
+### "No input file found"
+→ Place Excel file in `data/input/`
 
-### "LLM Solution nicht verfügbar"
-→ Stelle sicher dass `LLM Solution/` Ordner existiert und Dependencies installiert sind
+### "LLM Solution not available"
+→ Ensure that `LLM Solution/` folder exists and dependencies are installed
 
-### "transformers nicht verfügbar"
-→ Installiere Dependencies:
+### "transformers not available"
+→ Install dependencies:
 ```cmd
 cd "P:\IMPORTANT\Projects\SentimentAnalysis\LLM Solution"
 python -m pip install --no-index --find-links=wheels transformers torch
 ```
 
-### "Scraping schlägt fehl"
-→ Verwende `--no-scraping` falls URLs nicht erreichbar sind
+### "Scraping fails"
+→ Use `--no-scraping` if URLs are not reachable
 
-## ✅ Zusammenfassung
+## ✅ Summary
 
 **Input:**
 ```
-Excel mit URLs + Kommentaren
+Excel with URLs + Comments
 ```
 
-**Befehl:**
+**Command:**
 ```bash
 python main.py --input data/input/meine_artikel.xlsx
 ```
 
 **Output:**
 ```
-Excel Report mit Antwort auf:
-"Welche Artikel-Typen haben positives/negatives Feedback?"
+Excel Report with answer to:
+"Which article types have positive/negative feedback?"
 ```
 
-**Ergebnis:**
+**Result:**
 ```
-Sheet "Kategorien" → Sortiert nach Avg_Sentiment
-→ Top-Kategorien = Beste Artikel-Typen!
+Sheet "Kategorien" → Sorted by Avg_Sentiment
+→ Top categories = Best article types!
 ```
 
 ---
 
-**Los geht's! 🚀**
+**Let's go! 🚀**
 
-Lege deine Excel-Datei in `data/input/` und starte die Analyse!
+Place your Excel file in `data/input/` and start the analysis!

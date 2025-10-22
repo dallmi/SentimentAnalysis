@@ -35,8 +35,8 @@
 
 **Problems:**
 ```markdown
-### 3. Programm ausführen
-python main.py --input data/input/ihre_datei.xlsx
+### 3. Run the program
+python main.py --input data/input/your_file.xlsx
 ```
 
 → **WRONG!** Should be `main_with_llm.py` now (with auto-clustering default)
@@ -56,7 +56,7 @@ python main.py --input data/input/ihre_datei.xlsx
 
 **Problems:**
 ```bash
-python main.py --input data/input/ihre_datei.xlsx
+python main.py --input data/input/your_file.xlsx
 ```
 
 → Should mention `main_with_llm.py` as recommended version
