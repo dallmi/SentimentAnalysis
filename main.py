@@ -266,6 +266,13 @@ def parse_arguments():
         help='Path to JSON file with pre-extracted article content (bypasses web scraping)'
     )
 
+    parser.add_argument(
+        '--extracted-json',
+        type=str,
+        default=None,
+        help='Path to JSON file with complete extracted data (articles + comments). No Excel file needed!'
+    )
+
     return parser.parse_args()
 
 
@@ -318,59 +325,96 @@ def main():
     # Parse Argumente
     args = parse_arguments()
 
-    # Finde Input-Datei
-    input_file = args.input or find_input_file()
+    # Check if using extracted JSON (all-in-one mode)
+    if args.extracted_json:
+        logger.info(f"\n[1/6] Loading complete data from {args.extracted_json}...")
+        try:
+            with open(args.extracted_json, 'r', encoding='utf-8') as f:
+                extracted_data = json.load(f)
 
-    if not input_file:
-        logger.error("❌ Keine Input-Datei gefunden!")
-        logger.info("Bitte lege eine Excel-Datei in data/input/ ab")
-        logger.info("Oder verwende: --input pfad/zur/datei.xlsx")
-        return 1
+            # Normalize to array
+            if isinstance(extracted_data, dict):
+                extracted_data = [extracted_data]
 
-    logger.info(f"Input-Datei: {input_file}")
+            logger.info(f"✓ Loaded {len(extracted_data)} articles with comments")
 
-    # 1. Lade Daten
-    logger.info("\n[1/6] Lade Daten aus Excel...")
-    data_loader = DataLoader(input_file)
-    data = data_loader.load_excel(args.url_column, args.comment_column)
+            # Convert to pandas DataFrame format
+            data_rows = []
+            for article in extracted_data:
+                url = article.get('url', '')
+                comments = article.get('comments', [])
 
-    if data.empty:
-        logger.error("❌ Keine Daten geladen!")
-        return 1
+                for comment in comments:
+                    data_rows.append({
+                        'url': url,
+                        'comment': comment.get('text', '')
+                    })
 
-    logger.info(f"✓ {len(data)} Zeilen geladen")
+            data = pd.DataFrame(data_rows)
 
-    # Gruppiere nach URL
-    grouped_data = data.groupby('url').agg({
-        'comment': list
-    }).reset_index()
+            if data.empty:
+                logger.error("❌ No comments found in extracted JSON!")
+                return 1
 
-    logger.info(f"✓ {len(grouped_data)} unique Artikel gefunden")
+            logger.info(f"✓ {len(data)} comments loaded from JSON")
+
+            # Gruppiere nach URL
+            grouped_data = data.groupby('url').agg({
+                'comment': list
+            }).reset_index()
+
+            logger.info(f"✓ {len(grouped_data)} unique articles found")
+
+        except FileNotFoundError:
+            logger.error(f"❌ Extracted JSON file not found: {args.extracted_json}")
+            return 1
+        except json.JSONDecodeError as e:
+            logger.error(f"❌ Invalid JSON in {args.extracted_json}: {e}")
+            return 1
+
+    else:
+        # Original Excel-based loading
+        # Finde Input-Datei
+        input_file = args.input or find_input_file()
+
+        if not input_file:
+            logger.error("❌ Keine Input-Datei gefunden!")
+            logger.info("Bitte lege eine Excel-Datei in data/input/ ab")
+            logger.info("Oder verwende: --input pfad/zur/datei.xlsx")
+            logger.info("Oder verwende: --extracted-json pfad/zur/extracted_data.json")
+            return 1
+
+        logger.info(f"Input-Datei: {input_file}")
+
+        # 1. Lade Daten
+        logger.info("\n[1/6] Lade Daten aus Excel...")
+        data_loader = DataLoader(input_file)
+        data = data_loader.load_excel(args.url_column, args.comment_column)
+
+        if data.empty:
+            logger.error("❌ Keine Daten geladen!")
+            return 1
+
+        logger.info(f"✓ {len(data)} Zeilen geladen")
+
+        # Gruppiere nach URL
+        grouped_data = data.groupby('url').agg({
+            'comment': list
+        }).reset_index()
+
+        logger.info(f"✓ {len(grouped_data)} unique Artikel gefunden")
 
     # 2. Scrape Artikel-Inhalte oder lade aus JSON
     articles = []
 
-    # Check if pre-extracted articles JSON is provided
-    articles_content = {}
-    if args.articles_json:
-        logger.info(f"\n[2/6] Loading pre-extracted articles from {args.articles_json}...")
-        try:
-            with open(args.articles_json, 'r', encoding='utf-8') as f:
-                articles_content = json.load(f)
-            logger.info(f"✓ Loaded {len(articles_content)} pre-extracted articles")
-        except FileNotFoundError:
-            logger.error(f"❌ Articles JSON file not found: {args.articles_json}")
-            return 1
-        except json.JSONDecodeError as e:
-            logger.error(f"❌ Invalid JSON in {args.articles_json}: {e}")
-            return 1
-
-    if args.articles_json:
-        # Use pre-extracted content from JSON
-        logger.info("\n[2/6] Using pre-extracted article content...")
+    # If using extracted JSON, article content is already available
+    if args.extracted_json:
+        logger.info("\n[2/6] Using article content from extracted JSON...")
         for idx, row in grouped_data.iterrows():
             url = row['url']
-            article_info = articles_content.get(url, {})
+
+            # Find the article in extracted_data
+            article_info = next((a for a in extracted_data if a.get('url') == url), {})
 
             articles.append({
                 'url': url,
@@ -381,7 +425,38 @@ def main():
             })
 
         successful = sum(1 for a in articles if a['success'])
-        logger.info(f"✓ {successful}/{len(articles)} articles with content loaded from JSON")
+        logger.info(f"✓ {successful}/{len(articles)} articles with content from extracted JSON")
+
+    # Check if pre-extracted articles JSON is provided (separate file)
+    elif args.articles_json:
+        logger.info(f"\n[2/6] Loading pre-extracted articles from {args.articles_json}...")
+        try:
+            with open(args.articles_json, 'r', encoding='utf-8') as f:
+                articles_content = json.load(f)
+            logger.info(f"✓ Loaded {len(articles_content)} pre-extracted articles")
+
+            # Use pre-extracted content from JSON
+            for idx, row in grouped_data.iterrows():
+                url = row['url']
+                article_info = articles_content.get(url, {})
+
+                articles.append({
+                    'url': url,
+                    'title': article_info.get('title', 'N/A'),
+                    'content': article_info.get('content', ''),
+                    'comments': row['comment'],
+                    'success': bool(article_info.get('content'))
+                })
+
+            successful = sum(1 for a in articles if a['success'])
+            logger.info(f"✓ {successful}/{len(articles)} articles with content loaded from JSON")
+
+        except FileNotFoundError:
+            logger.error(f"❌ Articles JSON file not found: {args.articles_json}")
+            return 1
+        except json.JSONDecodeError as e:
+            logger.error(f"❌ Invalid JSON in {args.articles_json}: {e}")
+            return 1
 
     elif not args.no_scraping:
         logger.info("\n[2/6] Scrape Artikel-Inhalte...")
