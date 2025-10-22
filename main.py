@@ -261,6 +261,30 @@ def parse_arguments():
     return parser.parse_args()
 
 
+def get_sentiment_rating(score: float) -> str:
+    """
+    Convert sentiment score to human-readable rating for stakeholders.
+
+    Args:
+        score: Sentiment score from -1.0 to +1.0
+
+    Returns:
+        Rating string (Excellent, Very Good, Good, Fair, Poor, Very Poor)
+    """
+    if score >= 0.6:
+        return "⭐⭐⭐⭐⭐ Excellent"
+    elif score >= 0.4:
+        return "⭐⭐⭐⭐ Very Good"
+    elif score >= 0.2:
+        return "⭐⭐⭐ Good"
+    elif score >= 0.0:
+        return "⭐⭐ Fair"
+    elif score >= -0.2:
+        return "⭐ Poor"
+    else:
+        return "❌ Very Poor"
+
+
 def find_input_file():
     """Sucht nach Input-Datei im Input-Verzeichnis"""
     input_path = Path(INPUT_DIR)
@@ -520,6 +544,14 @@ def main():
             'positive_count', 'negative_count', 'neutral_count'
         ]].copy()
 
+        # Add Rating column for stakeholders
+        articles_summary['Rating'] = articles_summary['avg_sentiment'].apply(get_sentiment_rating)
+
+        # Reorder columns to put Rating right after avg_sentiment
+        cols = ['url', 'title', 'category', 'cluster', 'avg_sentiment', 'Rating',
+                'total_comments', 'positive_count', 'negative_count', 'neutral_count']
+        articles_summary = articles_summary[cols]
+
         articles_summary = articles_summary.sort_values('avg_sentiment', ascending=False)
         articles_summary.to_excel(writer, sheet_name='Articles', index=False)
 
@@ -534,6 +566,15 @@ def main():
 
         category_analysis.columns = ['Category', 'Avg_Sentiment', 'Article_Count',
                                      'Positive_Comments', 'Negative_Comments', 'Neutral_Comments']
+
+        # Add Rating column for stakeholders
+        category_analysis['Rating'] = category_analysis['Avg_Sentiment'].apply(get_sentiment_rating)
+
+        # Reorder columns to put Rating right after Avg_Sentiment
+        cols = ['Category', 'Avg_Sentiment', 'Rating', 'Article_Count',
+                'Positive_Comments', 'Negative_Comments', 'Neutral_Comments']
+        category_analysis = category_analysis[cols]
+
         category_analysis = category_analysis.sort_values('Avg_Sentiment', ascending=False)
         category_analysis.to_excel(writer, sheet_name='Categories', index=False)
 
@@ -545,6 +586,14 @@ def main():
             }).reset_index()
 
             cluster_analysis.columns = ['Cluster', 'Avg_Sentiment', 'Article_Count']
+
+            # Add Rating column for stakeholders
+            cluster_analysis['Rating'] = cluster_analysis['Avg_Sentiment'].apply(get_sentiment_rating)
+
+            # Reorder columns to put Rating right after Avg_Sentiment
+            cols = ['Cluster', 'Avg_Sentiment', 'Rating', 'Article_Count']
+            cluster_analysis = cluster_analysis[cols]
+
             cluster_analysis = cluster_analysis.sort_values('Avg_Sentiment', ascending=False)
             cluster_analysis.to_excel(writer, sheet_name='Clusters', index=False)
 
