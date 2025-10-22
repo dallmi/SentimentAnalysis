@@ -91,20 +91,20 @@ data/output/llm_analysis_20251022_143022.xlsx
 ### Sheets:
 
 #### 1. **Artikel** - Übersicht aller Artikel
-| URL | Titel | Content-Thema | Cluster | Avg_Sentiment | Total_Comments | Positive | Negative | Neutral |
+| URL | Titel | Content Theme | Cluster | Avg_Sentiment | Total_Comments | Positive | Negative | Neutral |
 |-----|-------|---------------|---------|---------------|----------------|----------|----------|---------|
-| ... | ...   | Mitarbeiter-Stories | Mitarbeiter-Stories_interview | +0.85 | 12 | 10 | 1 | 1 |
+| ... | ...   | Employee Stories | Employee Stories_interview | +0.85 | 12 | 10 | 1 | 1 |
 
 #### 2. **Kategorien** - Sentiment pro Content-Thema ⭐ **WICHTIGSTE ANSICHT**
-| Content-Thema | Avg_Sentiment | Anzahl_Artikel | Positive_Kommentare | Negative_Kommentare |
+| Content Theme | Avg_Sentiment | Anzahl_Artikel | Positive_Kommentare | Negative_Kommentare |
 |---------------|---------------|----------------|---------------------|---------------------|
-| Mitarbeiter-Stories | +0.88 | 15 | 142 | 5 |
+| Employee Stories | +0.88 | 15 | 142 | 5 |
 | Events & Networking | +0.75 | 20 | 158 | 18 |
 | Wellness & Benefits | +0.68 | 12 | 95 | 12 |
-| KI & Innovation | +0.45 | 25 | 145 | 48 |
-| Organisatorische Änderungen | -0.15 | 12 | 35 | 75 |
+| AI & Innovation | +0.45 | 25 | 145 | 48 |
+| Organizational Change | -0.15 | 12 | 35 | 75 |
 
-**→ Interpretation:** Mitarbeiter-Stories bekommen bestes Feedback! 🎯
+**→ Interpretation:** Employee Stories bekommen bestes Feedback! 🎯
 
 #### 3. **Clusters** - Thematische Gruppen innerhalb der Content-Themen
 | Cluster | Avg_Sentiment | Anzahl_Artikel |

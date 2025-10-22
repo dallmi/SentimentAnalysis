@@ -27,76 +27,154 @@ SENTIMENT_THRESHOLDS = {
 # Kategorisierung nach INHALTS-THEMEN (nicht Abteilungen!)
 MIN_COMMENTS_FOR_ANALYSIS = 1  # Mindestanzahl Kommentare pro Artikel
 
-# Content-Theme Kategorien: Was ist das THEMA des Artikels?
+# Content-Theme Categories: What is the article ABOUT?
+# Language priority: English (primary), German (secondary), French/Italian (tertiary)
 CATEGORY_KEYWORDS = {
-    # Technologie & Innovation
-    'KI & Innovation': [
-        'künstliche intelligenz', 'ki', 'ai', 'machine learning', 'chatgpt',
-        'automation', 'innovation', 'digital transformation', 'digitalisierung',
-        'startup', 'technologie', 'zukunft', 'forschung'
+    # AI & Technology Innovation
+    'AI & Innovation': [
+        # English (primary)
+        'artificial intelligence', 'ai', 'machine learning', 'ml', 'chatgpt', 'gpt',
+        'automation', 'innovation', 'digital transformation', 'technology', 'tech',
+        'startup', 'future', 'research', 'data science', 'algorithm', 'deep learning',
+        # German (secondary)
+        'künstliche intelligenz', 'ki', 'digitalisierung', 'technologie', 'zukunft', 'forschung',
+        # French (tertiary)
+        'intelligence artificielle', 'ia', 'technologie', 'innovation',
+        # Italian (tertiary)
+        'intelligenza artificiale', 'tecnologia', 'innovazione'
     ],
 
-    # Persönliche Geschichten & Erfolge
-    'Mitarbeiter-Stories': [
-        'mitarbeiter', 'kollege', 'team', 'geschichte', 'erfahrung', 'interview',
-        'porträt', 'karriere', 'erfolg', 'persönlich', 'story', 'profil',
-        'erlebnis', 'werdegang', 'mein weg'
+    # Employee Stories & Profiles
+    'Employee Stories': [
+        # English (primary)
+        'employee', 'colleague', 'team member', 'story', 'experience', 'interview',
+        'profile', 'portrait', 'career', 'journey', 'success', 'personal', 'testimonial',
+        'meet the team', 'spotlight', 'feature', 'my path', 'my experience',
+        # German (secondary)
+        'mitarbeiter', 'kollege', 'geschichte', 'erfahrung', 'porträt', 'karriere',
+        'werdegang', 'mein weg', 'persönlich', 'profil', 'erlebnis',
+        # French (tertiary)
+        'employé', 'collègue', 'histoire', 'expérience', 'carrière', 'parcours',
+        # Italian (tertiary)
+        'dipendente', 'collega', 'storia', 'esperienza', 'carriera', 'percorso'
     ],
 
-    # Unternehmenskultur & Werte
-    'Unternehmenskultur': [
-        'kultur', 'werte', 'vision', 'mission', 'diversität', 'inklusion',
-        'diversity', 'zusammenarbeit', 'teamwork', 'gemeinschaft', 'values',
-        'purpose', 'nachhaltigkeit', 'verantwortung', 'ethik'
+    # Company Culture & Values
+    'Culture & Values': [
+        # English (primary)
+        'culture', 'values', 'vision', 'mission', 'diversity', 'inclusion', 'dei',
+        'collaboration', 'teamwork', 'community', 'purpose', 'ethics', 'integrity',
+        'belonging', 'equity', 'workplace culture', 'company values',
+        # German (secondary)
+        'kultur', 'werte', 'diversität', 'inklusion', 'zusammenarbeit', 'gemeinschaft',
+        'verantwortung', 'ethik', 'unternehmenskultur',
+        # French (tertiary)
+        'culture', 'valeurs', 'diversité', 'inclusion', 'collaboration', 'éthique',
+        # Italian (tertiary)
+        'cultura', 'valori', 'diversità', 'inclusione', 'collaborazione', 'etica'
     ],
 
-    # Lernen & Entwicklung
-    'Weiterbildung & Training': [
-        'training', 'schulung', 'workshop', 'seminar', 'weiterbildung',
-        'lernen', 'entwicklung', 'kurs', 'coaching', 'mentoring',
-        'upskilling', 'fortbildung', 'akademie', 'programm'
+    # Learning & Development
+    'Learning & Development': [
+        # English (primary)
+        'training', 'workshop', 'seminar', 'course', 'learning', 'development',
+        'coaching', 'mentoring', 'upskilling', 'reskilling', 'education', 'academy',
+        'program', 'certification', 'skill building', 'professional development',
+        # German (secondary)
+        'schulung', 'weiterbildung', 'lernen', 'entwicklung', 'kurs', 'fortbildung',
+        'akademie', 'programm', 'ausbildung',
+        # French (tertiary)
+        'formation', 'atelier', 'apprentissage', 'développement', 'coaching',
+        # Italian (tertiary)
+        'formazione', 'workshop', 'apprendimento', 'sviluppo', 'corso'
     ],
 
-    # Veranstaltungen & Events
+    # Events & Networking
     'Events & Networking': [
-        'event', 'veranstaltung', 'konferenz', 'meetup', 'networking',
-        'feier', 'jubiläum', 'fest', 'party', 'treffen', 'community',
-        'hackathon', 'summit', 'conference'
+        # English (primary)
+        'event', 'conference', 'meetup', 'networking', 'celebration', 'anniversary',
+        'party', 'gathering', 'community', 'hackathon', 'summit', 'forum',
+        'townhall', 'get-together', 'social event', 'team building',
+        # German (secondary)
+        'veranstaltung', 'konferenz', 'feier', 'jubiläum', 'fest', 'treffen',
+        # French (tertiary)
+        'événement', 'conférence', 'rencontre', 'célébration', 'fête', 'réunion',
+        # Italian (tertiary)
+        'evento', 'conferenza', 'incontro', 'celebrazione', 'festa', 'riunione'
     ],
 
-    # Produkte & Projekte
-    'Produkt-News': [
-        'produkt', 'launch', 'release', 'feature', 'projekt', 'entwicklung',
-        'beta', 'update', 'version', 'lösung', 'service', 'plattform',
-        'tool', 'application', 'software'
+    # Product & Project News
+    'Product News': [
+        # English (primary)
+        'product', 'launch', 'release', 'feature', 'project', 'development',
+        'beta', 'update', 'version', 'solution', 'service', 'platform',
+        'tool', 'application', 'software', 'rollout', 'deployment', 'new release',
+        # German (secondary)
+        'produkt', 'projekt', 'entwicklung', 'lösung', 'anwendung',
+        # French (tertiary)
+        'produit', 'lancement', 'projet', 'développement', 'solution', 'service',
+        # Italian (tertiary)
+        'prodotto', 'lancio', 'progetto', 'sviluppo', 'soluzione', 'servizio'
     ],
 
-    # Unternehmenserfolge & Zahlen
-    'Business & Erfolge': [
-        'quartal', 'umsatz', 'wachstum', 'erfolg', 'award', 'auszeichnung',
-        'partner', 'kunde', 'vertrag', 'deal', 'expansion', 'markt',
-        'geschäftsjahr', 'finanzen', 'gewinn'
+    # Business Success & Results
+    'Business & Success': [
+        # English (primary)
+        'quarter', 'revenue', 'growth', 'success', 'award', 'achievement',
+        'partner', 'customer', 'client', 'contract', 'deal', 'expansion',
+        'market', 'fiscal year', 'financial', 'profit', 'milestone', 'win',
+        # German (secondary)
+        'quartal', 'umsatz', 'wachstum', 'erfolg', 'auszeichnung', 'kunde',
+        'vertrag', 'markt', 'geschäftsjahr', 'finanzen', 'gewinn',
+        # French (tertiary)
+        'trimestre', 'croissance', 'succès', 'récompense', 'client', 'marché',
+        # Italian (tertiary)
+        'trimestre', 'crescita', 'successo', 'premio', 'cliente', 'mercato'
     ],
 
-    # Wellness & Work-Life
+    # Wellness & Work-Life Balance
     'Wellness & Benefits': [
-        'gesundheit', 'wellness', 'sport', 'fitness', 'work-life-balance',
-        'flexible', 'homeoffice', 'remote', 'benefits', 'gesundheitstag',
-        'yoga', 'meditation', 'wohlbefinden', 'mental health'
+        # English (primary)
+        'health', 'wellness', 'wellbeing', 'sport', 'fitness', 'work-life balance',
+        'flexible', 'remote work', 'home office', 'benefits', 'perks', 'yoga',
+        'meditation', 'mental health', 'physical health', 'work from home', 'wfh',
+        # German (secondary)
+        'gesundheit', 'wohlbefinden', 'homeoffice', 'gesundheitstag',
+        # French (tertiary)
+        'santé', 'bien-être', 'équilibre', 'télétravail', 'flexibilité',
+        # Italian (tertiary)
+        'salute', 'benessere', 'equilibrio', 'lavoro remoto', 'flessibilità'
     ],
 
-    # Change & Transformation
-    'Organisatorische Änderungen': [
-        'change', 'transformation', 'reorganisation', 'umstrukturierung',
-        'strategie', 'führung', 'management', 'neue struktur', 'änderung',
-        'prozess', 'optimierung', 'effizienz', 'umstellung'
+    # Organizational Change
+    'Organizational Change': [
+        # English (primary)
+        'change', 'transformation', 'reorganization', 'restructuring', 'strategy',
+        'leadership', 'management', 'new structure', 'process', 'optimization',
+        'efficiency', 'transition', 'shift', 'realignment', 'org change',
+        # German (secondary)
+        'umstrukturierung', 'strategie', 'führung', 'neue struktur', 'änderung',
+        'prozess', 'optimierung', 'effizienz', 'umstellung',
+        # French (tertiary)
+        'changement', 'restructuration', 'stratégie', 'direction', 'transformation',
+        # Italian (tertiary)
+        'cambiamento', 'ristrutturazione', 'strategia', 'trasformazione'
     ],
 
-    # Soziale Verantwortung
-    'CSR & Nachhaltigkeit': [
-        'nachhaltigkeit', 'csr', 'umwelt', 'klimaschutz', 'sozial',
-        'spende', 'charity', 'volunteering', 'engagement', 'green',
-        'ökologisch', 'recycling', 'co2', 'klimaneutral'
+    # CSR & Sustainability
+    'CSR & Sustainability': [
+        # English (primary)
+        'sustainability', 'sustainable', 'csr', 'environment', 'climate', 'green',
+        'social responsibility', 'donation', 'charity', 'volunteering', 'volunteer',
+        'ecological', 'eco-friendly', 'recycling', 'carbon', 'co2', 'net zero',
+        'climate neutral', 'esg', 'impact', 'giving back',
+        # German (secondary)
+        'nachhaltigkeit', 'umwelt', 'klimaschutz', 'sozial', 'spende',
+        'engagement', 'ökologisch', 'klimaneutral',
+        # French (tertiary)
+        'durabilité', 'environnement', 'climat', 'écologique', 'donation',
+        # Italian (tertiary)
+        'sostenibilità', 'ambiente', 'clima', 'ecologico', 'donazione'
     ],
 }
 

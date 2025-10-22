@@ -67,43 +67,43 @@ start data\output\llm_analysis_20251022_143022.xlsx
 
 Hier siehst du die Antwort auf deine Frage nach **Content-Themen** (nicht Abteilungen!):
 
-| Content-Thema | Avg_Sentiment | Anzahl_Artikel | Positive_Kommentare | Negative_Kommentare |
+| Content Theme | Avg_Sentiment | Anzahl_Artikel | Positive_Kommentare | Negative_Kommentare |
 |---------------|---------------|----------------|---------------------|---------------------|
-| Mitarbeiter-Stories | +0.88 | 15 | 142 | 5 |
+| Employee Stories | +0.88 | 15 | 142 | 5 |
 | Events & Networking | +0.75 | 20 | 158 | 18 |
 | Wellness & Benefits | +0.68 | 12 | 95 | 12 |
-| Weiterbildung & Training | +0.62 | 18 | 120 | 25 |
-| KI & Innovation | +0.45 | 25 | 145 | 48 |
-| Produkt-News | +0.38 | 22 | 125 | 58 |
-| Unternehmenskultur | +0.35 | 10 | 65 | 35 |
-| Business & Erfolge | +0.22 | 8 | 45 | 30 |
-| Organisatorische Änderungen | -0.15 | 12 | 35 | 75 |
-| CSR & Nachhaltigkeit | +0.55 | 8 | 52 | 12 |
+| Learning & Development | +0.62 | 18 | 120 | 25 |
+| AI & Innovation | +0.45 | 25 | 145 | 48 |
+| Product News | +0.38 | 22 | 125 | 58 |
+| Culture & Values | +0.35 | 10 | 65 | 35 |
+| Business & Success | +0.22 | 8 | 45 | 30 |
+| Organizational Change | -0.15 | 12 | 35 | 75 |
+| CSR & Sustainability | +0.55 | 8 | 52 | 12 |
 
 **Interpretation:**
-- ✅ **Mitarbeiter-Stories** funktionieren hervorragend! (+0.88)
+- ✅ **Employee Stories** funktionieren hervorragend! (+0.88)
 - ✅ **Events & Networking** kommen sehr gut an (+0.75)
 - ✅ **Wellness & Benefits** werden positiv aufgenommen (+0.68)
-- ✅ **Weiterbildung** ist beliebt (+0.62)
-- ⚠️ **KI & Innovation** ist ok, könnte verständlicher sein (+0.45)
-- ⚠️ **Organisatorische Änderungen** erzeugen negative Reaktionen (-0.15)
+- ✅ **Learning & Development** ist beliebt (+0.62)
+- ⚠️ **AI & Innovation** ist ok, könnte verständlicher sein (+0.45)
+- ⚠️ **Organizational Change** erzeugen negative Reaktionen (-0.15)
 
 ### Sheet "Clusters" - Detaillierte Themen-Gruppen
 
 | Cluster | Avg_Sentiment | Anzahl_Artikel |
 |---------|---------------|----------------|
-| Mitarbeiter-Stories_interview | +0.92 | 8 |
+| Employee Stories_interview | +0.92 | 8 |
 | Events & Networking_hackathon | +0.85 | 12 |
 | Wellness & Benefits_sport | +0.72 | 10 |
-| KI & Innovation_chatgpt | +0.48 | 15 |
-| Organisatorische Änderungen_umstrukturierung | -0.28 | 5 |
+| AI & Innovation_chatgpt | +0.48 | 15 |
+| Organizational Change_restructuring | -0.28 | 5 |
 
 **Interpretation:**
-- Mitarbeiter-Interviews funktionieren hervorragend
+- Employee interviews funktionieren hervorragend
 - Hackathon-Ankündigungen kommen sehr gut an
 - Sport- & Wellness-Events werden positiv aufgenommen
-- ChatGPT/KI-Themen erzeugen gemischte Reaktionen
-- Umstrukturierungs-News erzeugen negative Reaktionen
+- ChatGPT/AI-Themen erzeugen gemischte Reaktionen
+- Restructuring-News erzeugen negative Reaktionen
 
 ### Sheet "Artikel" - Alle Artikel im Detail
 
@@ -135,30 +135,44 @@ Bearbeite [config/settings.py](config/settings.py):
 
 ```python
 CATEGORY_KEYWORDS = {
-    # Bestehende Content-Themen
-    'KI & Innovation': ['künstliche intelligenz', 'ki', 'ai', ...],
-    'Mitarbeiter-Stories': ['mitarbeiter', 'kollege', 'interview', ...],
-    'Wellness & Benefits': ['gesundheit', 'wellness', 'sport', ...],
+    # Existing content themes (English names, multilingual keywords)
+    'AI & Innovation': [
+        # English (primary)
+        'artificial intelligence', 'ai', 'machine learning', 'chatgpt',
+        # German (secondary)
+        'künstliche intelligenz', 'ki', 'digitalisierung',
+        # French/Italian (tertiary)
+        'intelligence artificielle', 'intelligenza artificiale'
+    ],
 
-    # Füge eigenes Content-Thema hinzu:
-    'Diversity & Inclusion': [
-        'diversity', 'diversität', 'inklusion', 'vielfalt', 'lgbtq',
-        'frauen', 'gender', 'minorities', 'chancengleichheit'
+    'Employee Stories': [
+        'employee', 'story', 'interview',  # English
+        'mitarbeiter', 'kollege', 'geschichte',  # German
+        'employé', 'dipendente'  # French, Italian
+    ],
+
+    # Add your own content theme:
+    'Customer Success': [
+        # English (primary)
+        'customer', 'client', 'success story', 'case study', 'testimonial',
+        # German (secondary)
+        'kunde', 'erfolgsgeschichte', 'referenz', 'anwendungsfall',
+        # French/Italian (tertiary)
+        'client', 'cliente', 'cas d\'usage'
     ],
 
     'Remote Work': [
-        'remote', 'homeoffice', 'hybrid', 'flexible arbeitszeit',
-        'work from home', 'distributed team', 'async'
-    ],
-
-    'Customer Stories': [
-        'kunde', 'customer', 'success story', 'case study',
-        'referenz', 'testimonial', 'anwendungsfall'
+        'remote work', 'work from home', 'wfh', 'hybrid',  # English
+        'homeoffice', 'remote arbeit', 'hybrid arbeiten',  # German
+        'télétravail', 'lavoro remoto'  # French, Italian
     ],
 }
 ```
 
-**Tipp:** Die Keywords sollten zum **Inhalt/Thema** des Artikels passen, nicht zur Abteilung!
+**Important:**
+- Category names in **English** (consistent across all languages)
+- Keywords: **English primary**, German secondary, French/Italian tertiary
+- Keywords match the **content/topic**, not the department!
 
 ## 🔧 Performance-Tipps
 
