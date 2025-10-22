@@ -394,14 +394,15 @@ python main_with_llm.py --input q2_articles.xlsx --use-predefined
 
 ## 💡 Häufige Fragen
 
-### "Warum testet das System nur k=2 bis k=20?"
+### "Warum testet das System nur k=2 bis k=10?"
 
 **Antwort:**
 - **k < 2:** Macht keinen Sinn (mindestens 2 Cluster)
-- **k > 20:** Zu viele kleine Cluster, meist nicht nützlich
-- **Grenze:** max_k = min(20, n_articles / 3)
-  - Bei 60 Artikeln: max k=20
-  - Bei 30 Artikeln: max k=10 (mindestens 3 Artikel pro Cluster)
+- **k=2 bis k=10:** Optimaler Bereich für die meisten Anwendungsfälle
+- **k > 10:** Meist zu viele kleine Cluster, schwer interpretierbar
+- **Grenze:** max_k = min(10, n_articles / 3)
+  - Bei 30+ Artikeln: testet k=2 bis k=10
+  - Bei 15 Artikeln: testet k=2 bis k=5 (mindestens 3 Artikel pro Cluster)
 
 ---
 

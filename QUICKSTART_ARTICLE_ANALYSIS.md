@@ -35,18 +35,29 @@ python main_with_llm.py --input data/input/meine_artikel.xlsx
 
 ### Zwei Modi:
 
-#### Mode 1: Automatische Themen-Entdeckung - STANDARD ⭐
+#### Mode 1: Auto-Optimiert (Silhouette Score) - STANDARD ⭐⭐⭐
 
 ```bash
-# Entdeckt automatisch was die Artikel behandeln (DEFAULT!)
+# Findet automatisch optimale Anzahl Themen (DEFAULT!)
 python main_with_llm.py --input data/input/meine_artikel.xlsx
 ```
 
-→ System findet selbst heraus über was Artikel geschrieben wurden
-→ Keine vordefinierten Kategorien nötig
-→ **EMPFOHLEN** für die meisten Anwendungsfälle
+→ Testet k=2 bis k=10 Cluster
+→ Wählt optimal k mit Silhouette Score
+→ **BESTE QUALITÄT** - empfohlen für die meisten Anwendungsfälle
+→ Dauer: ~1-2 Minuten für 100 Artikel
 
-#### Mode 2: Vordefinierte Kategorien
+#### Mode 2: Manuelle Anzahl Themen
+
+```bash
+# Verwendet fixe Anzahl Themen (schneller)
+python main_with_llm.py --input data/input/meine_artikel.xlsx --manual-topics --num-topics 7
+```
+
+→ Schneller (~30 Sekunden)
+→ Gut wenn du optimales k bereits kennst
+
+#### Mode 3: Vordefinierte Kategorien
 
 ```bash
 # Verwendet 10 vordefinierte Content-Themen
@@ -61,14 +72,8 @@ python main_with_llm.py --input data/input/meine_artikel.xlsx --use-predefined
 ### Weitere Optionen:
 
 ```bash
-# Optimale Cluster-Anzahl automatisch finden (Silhouette Score) 🆕
-python main_with_llm.py --input data/input/meine_artikel.xlsx --auto-clusters
-
-# Mehr Themen entdecken (detaillierter)
-python main_with_llm.py --input data/input/meine_artikel.xlsx --num-topics 15
-
-# Weniger Themen (grobe Übersicht)
-python main_with_llm.py --input data/input/meine_artikel.xlsx --num-topics 5
+# Fixe Anzahl Themen (7) verwenden - schneller
+python main_with_llm.py --input data/input/meine_artikel.xlsx --manual-topics --num-topics 7
 
 # Schneller Modus (Lexikon statt LLM - geringere Genauigkeit)
 python main_with_llm.py --input data/input/meine_artikel.xlsx --no-llm
@@ -77,8 +82,10 @@ python main_with_llm.py --input data/input/meine_artikel.xlsx --no-llm
 python main_with_llm.py --input data/input/meine_artikel.xlsx --no-scraping
 ```
 
-**💡 Tipp:** Verwende `--auto-clusters` für erste Analyse - findet automatisch die optimale Anzahl Themen!
-→ Siehe [CLUSTER_OPTIMIZATION.md](CLUSTER_OPTIMIZATION.md) für Details zum Silhouette Score
+**💡 Neue Defaults:**
+- **Auto-Optimierung ist jetzt Standard!** Findet automatisch optimale Anzahl Themen (k=2 bis k=10)
+- Verwendet Silhouette Score für beste Clustering-Qualität
+→ Siehe [CLUSTER_OPTIMIZATION.md](CLUSTER_OPTIMIZATION.md) für Details
 
 ## 📈 3. Ergebnis öffnen
 

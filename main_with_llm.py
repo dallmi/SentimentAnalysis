@@ -246,14 +246,14 @@ def parse_arguments():
     parser.add_argument(
         '--num-topics',
         type=int,
-        default=10,
-        help='Anzahl Themen für automatische Entdeckung (Standard: 10, nur ohne --use-predefined)'
+        default=None,
+        help='Fixe Anzahl Themen (überschreibt Auto-Optimierung, nur mit --manual-topics)'
     )
 
     parser.add_argument(
-        '--auto-clusters',
+        '--manual-topics',
         action='store_true',
-        help='Optimale Cluster-Anzahl automatisch bestimmen mit Silhouette Score (überschreibt --num-topics)'
+        help='Verwende fixe Anzahl Themen statt Auto-Optimierung (benötigt --num-topics)'
     )
 
     return parser.parse_args()
@@ -401,18 +401,28 @@ def main():
 
     elif TOPIC_DISCOVERY_AVAILABLE:
         # UNSUPERVISED: Entdecke Themen automatisch (DEFAULT!)
-        if args.auto_clusters:
-            logger.info(f"\n[4/6] Entdecke optimale Anzahl Themen automatisch (UNSUPERVISED - AUTO-OPTIMIERT)...")
-            logger.info("      (Verwendet Silhouette Score zur Bestimmung der optimalen Cluster-Anzahl)")
+
+        # Determine if auto-optimization should be used
+        if args.manual_topics:
+            # Manual mode: user specifies exact number
+            num_topics = args.num_topics if args.num_topics else 10
+            auto_optimize = False
+            logger.info(f"\n[4/6] Entdecke {num_topics} Themen (MANUELL)...")
+            logger.info("      (Fixe Anzahl Themen)")
         else:
-            logger.info(f"\n[4/6] Entdecke {args.num_topics} Themen automatisch (UNSUPERVISED - DEFAULT)...")
+            # Auto-optimize mode (DEFAULT)
+            num_topics = 10  # Fallback, will be ignored
+            auto_optimize = True
+            logger.info(f"\n[4/6] Entdecke optimale Anzahl Themen automatisch (AUTO-OPTIMIERT - DEFAULT)...")
+            logger.info("      (Verwendet Silhouette Score - testet k=2 bis k=10)")
+
         logger.info("      (Keine vordefinierten Kategorien - entdeckt was Artikel tatsächlich behandeln)")
         logger.info("      (Verwende --use-predefined für vordefinierte Kategorien)")
 
         discoverer = TopicDiscovery(
-            num_topics=args.num_topics,
+            num_topics=num_topics,
             min_articles_per_topic=2,
-            auto_optimize=args.auto_clusters
+            auto_optimize=auto_optimize
         )
 
         # Prepare articles for topic discovery
@@ -436,7 +446,7 @@ def main():
         logger.info(f"✓ {len(topic_results['valid_topics'])} Themen entdeckt")
         logger.info(f"  Silhouette Score: {topic_results['silhouette_score']:.3f}")
 
-        if args.auto_clusters and topic_results.get('silhouette_scores_by_k'):
+        if auto_optimize and topic_results.get('silhouette_scores_by_k'):
             logger.info("\nSilhouette Scores pro Cluster-Anzahl:")
             for k, score in sorted(topic_results['silhouette_scores_by_k'].items()):
                 marker = " ← OPTIMAL" if k == topic_results['num_topics'] else ""

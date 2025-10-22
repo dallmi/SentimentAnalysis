@@ -329,15 +329,15 @@ class TopicDiscovery:
         self,
         vectors: List[Dict[str, float]],
         min_k: int = 2,
-        max_k: int = 20
+        max_k: int = 10
     ) -> Tuple[int, Dict[int, float]]:
         """
         Find optimal number of clusters using Silhouette score
 
         Args:
             vectors: TF-IDF vectors
-            min_k: Minimum number of clusters to try
-            max_k: Maximum number of clusters to try
+            min_k: Minimum number of clusters to try (default: 2)
+            max_k: Maximum number of clusters to try (default: 10)
 
         Returns:
             Tuple of (optimal_k, silhouette_scores_dict)
@@ -403,7 +403,7 @@ class TopicDiscovery:
             optimal_k, silhouette_scores = self._find_optimal_clusters(
                 tfidf_vectors,
                 min_k=max(2, self.min_articles_per_topic),
-                max_k=min(20, len(articles) // 3)
+                max_k=min(10, len(articles) // 3)  # Changed from 20 to 10 for faster optimization
             )
             num_topics = optimal_k
         else:
