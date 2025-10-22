@@ -1,0 +1,6 @@
+# Ignore all wheel files (too large for Git)
+*.whl
+
+# Keep this folder structure and README
+!README.md
+!.gitignore
