@@ -23,7 +23,7 @@ Automatically discovers what your articles are about WITHOUT predefined categori
 
 **Command (DEFAULT):**
 ```bash
-python main_with_llm.py --input data/input/articles.xlsx
+python main.py --input data/input/articles.xlsx
 ```
 
 **Example Output:**
@@ -55,7 +55,7 @@ Uses predefined content themes that you specify in advance.
 
 **Command:**
 ```bash
-python main_with_llm.py --input data/input/articles.xlsx --use-predefined
+python main.py --input data/input/articles.xlsx --use-predefined
 ```
 
 **Example Output:**
@@ -79,17 +79,17 @@ AI & Innovation      | 30       | +0.45
 | **Flexibility** | Adapts automatically ✅ | Must update keywords manually |
 | **Interpretability** | Requires interpretation | Easy to understand |
 | **Use case** | "What are people writing about?" | "Track performance of AI articles" |
-| **Command** | `python main_with_llm.py --input file.xlsx` | `python main_with_llm.py --input file.xlsx --use-predefined` |
+| **Command** | `python main.py --input file.xlsx` | `python main.py --input file.xlsx --use-predefined` |
 
 ---
 
 ## 🚀 Usage Examples
 
-### Example 1: Discover What Topics Actually Appear (DEFAULT)
+### Example 1: Discover What Topics Actually Appear (DEFAULT - Auto-Optimized)
 
 ```bash
-# Let the system discover 10 topics automatically
-python main_with_llm.py --input data/input/q4_articles.xlsx
+# Let the system discover optimal number of topics automatically (k=2-10)
+python main.py --input data/input/q4_articles.xlsx
 ```
 
 **Best for:** First-time analysis, understanding your content landscape, most use cases
@@ -100,29 +100,29 @@ python main_with_llm.py --input data/input/q4_articles.xlsx
 
 ```bash
 # Use predefined categories
-python main_with_llm.py --input data/input/q4_articles.xlsx --use-predefined
+python main.py --input data/input/q4_articles.xlsx --use-predefined
 ```
 
 **Best for:** Regular quarterly reports, tracking known content themes
 
 ---
 
-### Example 3: Discover More Topics
+### Example 3: Manual Topic Count (More Topics)
 
 ```bash
-# Discover 15 topics (more granular)
-python main_with_llm.py --input data/input/q4_articles.xlsx --num-topics 15
+# Discover exactly 15 topics (more granular)
+python main.py --input data/input/q4_articles.xlsx --manual-topics --num-topics 15
 ```
 
 **Best for:** Large datasets, finding niche topics
 
 ---
 
-### Example 4: Discover Fewer Topics
+### Example 4: Manual Topic Count (Fewer Topics)
 
 ```bash
-# Discover only 5 broad topics
-python main_with_llm.py --input data/input/q4_articles.xlsx --num-topics 5
+# Discover exactly 5 broad topics
+python main.py --input data/input/q4_articles.xlsx --manual-topics --num-topics 5
 ```
 
 **Best for:** High-level overview, executive summaries

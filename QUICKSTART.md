@@ -1,185 +1,289 @@
-# Schnellstart-Anleitung
+# Quickstart: Artikel-Analyse mit LLM
 
-## 🚀 Quick Start in 3 Schritten
+## 🎯 Dein Ziel
 
-### 1. Installation
+URLs von News & Events Artikeln analysieren und verstehen:
+- **Welche Artikel-Typen bekommen positives Feedback?**
+- **Welche Artikel-Typen bekommen negatives Feedback?**
+
+## 📊 1. Excel-Datei vorbereiten
+
+Erstelle eine Excel-Datei mit 2 Spalten:
+
+```
+Spalte A (URL)                              | Spalte B (Kommentar)
+-------------------------------------------|---------------------------
+https://intranet.firma.de/artikel/123      | Great article!
+https://intranet.firma.de/artikel/123      | Very helpful
+https://intranet.firma.de/artikel/456      | Not clear
+https://intranet.firma.de/artikel/789      | Excellent!
+```
+
+**Speichere die Datei in:**
+```
+data/input/meine_artikel.xlsx
+```
+
+## 🚀 2. Analyse starten
+
+### In Corporate-Umgebung (Windows):
+
+```cmd
+cd P:\IMPORTANT\Projects\SentimentAnalysis
+python main.py --input data/input/meine_artikel.xlsx
+```
+
+### Zwei Modi:
+
+#### Mode 1: Auto-Optimiert (Silhouette Score) - STANDARD ⭐⭐⭐
+
 ```bash
-# Installation ausführen
-./install.sh
+# Findet automatisch optimale Anzahl Themen (DEFAULT!)
+python main.py --input data/input/meine_artikel.xlsx
 ```
 
-Das Skript:
-- Erstellt eine virtuelle Python-Umgebung
-- Installiert alle benötigten Packages
-- Lädt NLTK-Daten (optional für VADER)
+→ Testet k=2 bis k=10 Cluster
+→ Wählt optimal k mit Silhouette Score
+→ **BESTE QUALITÄT** - empfohlen für die meisten Anwendungsfälle
+→ Dauer: ~1-2 Minuten für 100 Artikel
 
-### 2. Excel-Datei vorbereiten
+#### Mode 2: Manuelle Anzahl Themen
 
-Lege deine Excel-Datei in `data/input/` ab mit:
-- **Spalte A**: URLs der Artikel
-- **Spalte B**: Kommentare
-
-Beispiel:
-```
-A: https://intranet.firma.de/artikel1
-B: Super Artikel, sehr hilfreich!
-
-A: https://intranet.firma.de/artikel1  
-B: Gut erklärt!
-
-A: https://intranet.firma.de/artikel2
-B: Leider unklar
-```
-
-### 3. Programm ausführen
-
-**Option A - Automatisch** (empfohlen für den Start):
 ```bash
-./run.sh
+# Verwendet fixe Anzahl Themen (schneller)
+python main.py --input data/input/meine_artikel.xlsx --manual-topics --num-topics 7
 ```
 
-**Option B - Manuell**:
+→ Schneller (~30 Sekunden)
+→ Gut wenn du optimales k bereits kennst
+
+#### Mode 3: Vordefinierte Kategorien
+
 ```bash
-# Aktiviere virtuelle Umgebung
-source venv/bin/activate
-
-# Führe Analyse aus
-python main.py --input data/input/ihre_datei.xlsx
+# Verwendet 10 vordefinierte Content-Themen
+python main.py --input data/input/meine_artikel.xlsx --use-predefined
 ```
 
-## 📊 Erweiterte Optionen
+→ Kategorien: Employee Stories, AI & Innovation, Events & Networking, etc.
+→ Gut für konsistente Quartals-Berichte
 
-### Mit VADER Sentiment Analyzer (bessere Genauigkeit)
+**Siehe [CATEGORIZATION_MODES.md](CATEGORIZATION_MODES.md) für Details zu beiden Modi!**
+
+### Weitere Optionen:
+
 ```bash
-python main.py --input data/input/datei.xlsx --use-vader
+# Fixe Anzahl Themen (7) verwenden - schneller
+python main.py --input data/input/meine_artikel.xlsx --manual-topics --num-topics 7
+
+# Schneller Modus (Lexikon statt LLM - geringere Genauigkeit)
+python main.py --input data/input/meine_artikel.xlsx --no-llm
+
+# Ohne Web Scraping (nur Kommentar-Analyse)
+python main.py --input data/input/meine_artikel.xlsx --no-scraping
 ```
 
-### Ohne Web Scraping (nur Kommentar-Analyse)
-```bash
-python main.py --input data/input/datei.xlsx --no-scraping
+**💡 Neue Defaults:**
+- **Auto-Optimierung ist jetzt Standard!** Findet automatisch optimale Anzahl Themen (k=2 bis k=10)
+- Verwendet Silhouette Score für beste Clustering-Qualität
+→ Siehe [CLUSTER_OPTIMIZATION.md](CLUSTER_OPTIMIZATION.md) für Details
+
+## 📈 3. Ergebnis öffnen
+
+Die Analyse erstellt eine Excel-Datei:
+```
+data/output/llm_analysis_20251022_143022.xlsx
 ```
 
-### Custom Spalten angeben
-```bash
-python main.py --input data/input/datei.xlsx --url-column C --comment-column D
+**Diese Datei öffnen:**
+```cmd
+start data\output\llm_analysis_20251022_143022.xlsx
 ```
 
-### Alle Optionen anzeigen
-```bash
-python main.py --help
-```
+## 📊 4. Ergebnisse interpretieren
 
-## 📁 Output
+### Sheet "Kategorien" - **Wichtigste Ansicht!**
 
-Nach der Ausführung findest du in `data/output/`:
+Hier siehst du die Antwort auf deine Frage nach **Content-Themen** (nicht Abteilungen!):
 
-1. **detailed_report_TIMESTAMP.xlsx**
-   - Artikel-Übersicht mit Kategorien und Sentiment
-   - Kategorie-Sentiment-Analyse
-   - Insights und Empfehlungen
-   - Sentiment-Verteilung pro Artikel
+| Content Theme | Avg_Sentiment | Anzahl_Artikel | Positive_Kommentare | Negative_Kommentare |
+|---------------|---------------|----------------|---------------------|---------------------|
+| Employee Stories | +0.88 | 15 | 142 | 5 |
+| Events & Networking | +0.75 | 20 | 158 | 18 |
+| Wellness & Benefits | +0.68 | 12 | 95 | 12 |
+| Learning & Development | +0.62 | 18 | 120 | 25 |
+| AI & Innovation | +0.45 | 25 | 145 | 48 |
+| Product News | +0.38 | 22 | 125 | 58 |
+| Culture & Values | +0.35 | 10 | 65 | 35 |
+| Business & Success | +0.22 | 8 | 45 | 30 |
+| Organizational Change | -0.15 | 12 | 35 | 75 |
+| CSR & Sustainability | +0.55 | 8 | 52 | 12 |
 
-2. **summary_report_TIMESTAMP.xlsx**
-   - Gesamt-Statistiken
-   - Top/Bottom Artikel
-   - Sentiment-Kategorien-Übersicht
+**Interpretation:**
+- ✅ **Employee Stories** funktionieren hervorragend! (+0.88)
+- ✅ **Events & Networking** kommen sehr gut an (+0.75)
+- ✅ **Wellness & Benefits** werden positiv aufgenommen (+0.68)
+- ✅ **Learning & Development** ist beliebt (+0.62)
+- ⚠️ **AI & Innovation** ist ok, könnte verständlicher sein (+0.45)
+- ⚠️ **Organizational Change** erzeugen negative Reaktionen (-0.15)
 
-3. **visualization_report_TIMESTAMP.html** (optional)
-   - HTML-Report mit Visualisierungen
-   
-4. **raw_analysis_data_TIMESTAMP.json**
-   - Rohdaten für weitere Analysen
+### Sheet "Clusters" - Detaillierte Themen-Gruppen
 
-## 🔧 Konfiguration
+| Cluster | Avg_Sentiment | Anzahl_Artikel |
+|---------|---------------|----------------|
+| Employee Stories_interview | +0.92 | 8 |
+| Events & Networking_hackathon | +0.85 | 12 |
+| Wellness & Benefits_sport | +0.72 | 10 |
+| AI & Innovation_chatgpt | +0.48 | 15 |
+| Organizational Change_restructuring | -0.28 | 5 |
 
-Bearbeite `config/settings.py` für:
+**Interpretation:**
+- Employee interviews funktionieren hervorragend
+- Hackathon-Ankündigungen kommen sehr gut an
+- Sport- & Wellness-Events werden positiv aufgenommen
+- ChatGPT/AI-Themen erzeugen gemischte Reaktionen
+- Restructuring-News erzeugen negative Reaktionen
 
-### Corporate Proxy
-```python
-PROXY_CONFIG = {
-    'http': 'http://proxy.firma.de:8080',
-    'https': 'http://proxy.firma.de:8080'
-}
-```
+### Sheet "Artikel" - Alle Artikel im Detail
 
-### Sentiment-Schwellenwerte
-```python
-SENTIMENT_THRESHOLDS = {
-    'very_positive': 0.5,
-    'positive': 0.1,
-    'negative': -0.1,
-    'very_negative': -0.5
-}
-```
+Vollständige Liste mit:
+- URL
+- Titel
+- Kategorie
+- Cluster
+- Durchschnittliches Sentiment
+- Anzahl Kommentare (positiv/negativ/neutral)
 
-### Kategorien anpassen
+### Sheet "Insights" - Top & Worst Artikel
+
+- **Top 5 Artikel** mit bestem Feedback
+- **Worst 5 Artikel** mit schlechtestem Feedback
+
+## 🎯 Actionable Insights
+
+Basierend auf den Ergebnissen kannst du:
+
+1. **Mehr von gut funktionierenden Artikel-Typen** veröffentlichen
+2. **Schlecht bewertete Artikel-Typen** verbessern oder vermeiden
+3. **Spezifische Themen identifizieren** die gut/schlecht ankommen
+4. **Content-Strategie anpassen**
+
+## ⚙️ Eigene Content-Themen hinzufügen
+
+Bearbeite [config/settings.py](config/settings.py):
+
 ```python
 CATEGORY_KEYWORDS = {
-    'HR': ['mitarbeiter', 'personal', ...],
-    'IT': ['software', 'hardware', ...],
-    # Füge eigene Kategorien hinzu
+    # Existing content themes (English names, multilingual keywords)
+    'AI & Innovation': [
+        # English (primary)
+        'artificial intelligence', 'ai', 'machine learning', 'chatgpt',
+        # German (secondary)
+        'künstliche intelligenz', 'ki', 'digitalisierung',
+        # French/Italian (tertiary)
+        'intelligence artificielle', 'intelligenza artificiale'
+    ],
+
+    'Employee Stories': [
+        'employee', 'story', 'interview',  # English
+        'mitarbeiter', 'kollege', 'geschichte',  # German
+        'employé', 'dipendente'  # French, Italian
+    ],
+
+    # Add your own content theme:
+    'Customer Success': [
+        # English (primary)
+        'customer', 'client', 'success story', 'case study', 'testimonial',
+        # German (secondary)
+        'kunde', 'erfolgsgeschichte', 'referenz', 'anwendungsfall',
+        # French/Italian (tertiary)
+        'client', 'cliente', 'cas d\'usage'
+    ],
+
+    'Remote Work': [
+        'remote work', 'work from home', 'wfh', 'hybrid',  # English
+        'homeoffice', 'remote arbeit', 'hybrid arbeiten',  # German
+        'télétravail', 'lavoro remoto'  # French, Italian
+    ],
 }
 ```
 
-## 🧪 System testen
+**Important:**
+- Category names in **English** (consistent across all languages)
+- Keywords: **English primary**, German secondary, French/Italian tertiary
+- Keywords match the **content/topic**, not the department!
 
+## 🔧 Performance-Tipps
+
+### Erste Verwendung (~60s Model Loading):
+```
+[3/6] Sentiment-Analyse der Kommentare...
+Lade LLM Model (kann ~60s dauern)...
+✓ LLM Model geladen (Mode: bert)
+```
+→ **Normal!** Das Model wird nur einmal geladen.
+
+### Viele Artikel (>100):
 ```bash
-# Test-Script ausführen
-python test_modules.py
+# Verwende Lexikon-Modus (10x schneller)
+python main.py --input datei.xlsx --no-llm
 ```
 
-Testet:
-- ✓ Sentiment Model
-- ✓ Article Categorizer  
-- ✓ Integration
-
-## ❓ Probleme?
-
-Siehe **TROUBLESHOOTING.md** für häufige Probleme und Lösungen.
-
-## 📚 Beispiel-Workflow
-
+### URLs nicht erreichbar:
 ```bash
-# 1. Installation (einmalig)
-./install.sh
-
-# 2. Excel-Datei vorbereiten und ablegen
-cp meine_artikel_kommentare.xlsx data/input/
-
-# 3. Analyse ausführen
-source venv/bin/activate
-python main.py --input data/input/meine_artikel_kommentare.xlsx
-
-# 4. Ergebnisse prüfen
-open data/output/detailed_report_*.xlsx
+# Überspringe Web Scraping (nur Kommentar-Analyse)
+python main.py --input datei.xlsx --no-scraping
 ```
 
-## 🎯 Was macht das System?
+## 📝 Vollständige Dokumentation
 
-1. **Lädt Excel-Daten**: URLs und Kommentare
-2. **Scrapt Artikel**: Lädt Artikel-Inhalte von den URLs
-3. **Analysiert Sentiment**: Bewertet jeden Kommentar (-1 bis +1)
-4. **Kategorisiert Artikel**: Nach Thema (HR, IT, etc.)
-5. **Korreliert**: Findet welche Kategorien positives/negatives Feedback erhalten
-6. **Generiert Reports**: Excel + Visualisierungen
+- **USAGE_GUIDE.md** - Ausführliche Anleitung mit allen Optionen
+- **LLM Solution/CORPORATE_DEPLOYMENT.md** - Setup-Guide für Corporate-Umgebung
+- **LLM Solution/README.md** - Technische Details zum LLM Model
 
-## 💡 Tipps
+## 🆘 Troubleshooting
 
-- Starte mit `--no-scraping` für schnelle Tests
-- Nutze kleine Datenmengen zum Testen
-- Prüfe `sentiment_analysis.log` bei Problemen
-- Passe Kategorien in `config/settings.py` an deine Firma an
+### "Keine Input-Datei gefunden"
+→ Lege Excel-Datei in `data/input/` ab
 
-## 🔐 Corporate Environment
+### "LLM Solution nicht verfügbar"
+→ Stelle sicher dass `LLM Solution/` Ordner existiert und Dependencies installiert sind
 
-Das System ist für Corporate Netzwerke optimiert:
-- ✓ Proxy-Support
-- ✓ Nexus Repository kompatibel
-- ✓ Keine Cloud-LLMs erforderlich
-- ✓ Alles läuft lokal
-- ✓ Kein Internet für Sentiment-Analyse nötig (nur für Scraping)
-
-Bei Problemen mit Nexus:
-```bash
-pip install --index-url https://nexus.firma.de/repository/pypi-all/simple -r requirements.txt
+### "transformers nicht verfügbar"
+→ Installiere Dependencies:
+```cmd
+cd "P:\IMPORTANT\Projects\SentimentAnalysis\LLM Solution"
+python -m pip install --no-index --find-links=wheels transformers torch
 ```
+
+### "Scraping schlägt fehl"
+→ Verwende `--no-scraping` falls URLs nicht erreichbar sind
+
+## ✅ Zusammenfassung
+
+**Input:**
+```
+Excel mit URLs + Kommentaren
+```
+
+**Befehl:**
+```bash
+python main.py --input data/input/meine_artikel.xlsx
+```
+
+**Output:**
+```
+Excel Report mit Antwort auf:
+"Welche Artikel-Typen haben positives/negatives Feedback?"
+```
+
+**Ergebnis:**
+```
+Sheet "Kategorien" → Sortiert nach Avg_Sentiment
+→ Top-Kategorien = Beste Artikel-Typen!
+```
+
+---
+
+**Los geht's! 🚀**
+
+Lege deine Excel-Datei in `data/input/` und starte die Analyse!

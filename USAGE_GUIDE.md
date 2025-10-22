@@ -38,45 +38,62 @@ data/input/deine_artikel.xlsx
 
 ## 🚀 Verwendung
 
-### Option 1: Standard (mit LLM Model)
+### Option 1: Standard (Auto-Optimiert) - ⭐ EMPFOHLEN
 
 ```bash
-python main_with_llm.py --input data/input/deine_artikel.xlsx
+python main.py --input data/input/deine_artikel.xlsx
 ```
 
 **Was passiert:**
 1. Lädt Excel-Datei
 2. Scrapt Artikel-Inhalte von URLs
-3. Analysiert Kommentare mit **BERT-Model** (hohe Genauigkeit)
-4. Kategorisiert Artikel nach **Content-Themen** (KI & Innovation, Mitarbeiter-Stories, Events, etc.)
-5. Clustert ähnliche Artikel
-6. Erstellt detaillierten Excel-Report
+3. Analysiert Kommentare mit **BERT-Model** (hohe Genauigkeit, mehrsprachig)
+4. **Auto-Clustering**: Findet automatisch optimale Anzahl Topics mit Silhouette Score (k=2-10)
+5. Erstellt detaillierten Excel-Report
 
-**Dauer:** ~3-5 Minuten für 50 Artikel (Model-Loading + Analyse)
+**Dauer:** ~3-5 Minuten für 50 Artikel (Model-Loading + Auto-Optimierung + Analyse)
 
-### Option 2: Schneller (ohne LLM)
+### Option 2: Manuelle Anzahl Topics
+
+Falls du eine bestimmte Anzahl Topics möchtest:
 
 ```bash
-python main_with_llm.py --input data/input/deine_artikel.xlsx --no-llm
+python main.py --input data/input/deine_artikel.xlsx --manual-topics --num-topics 7
+```
+
+**Verwendet:**
+- ✅ Exakt 7 Topics (ohne Auto-Optimierung)
+- ⚠️ Kann zu Over-/Under-Clustering führen
+
+### Option 3: Vordefinierte Content-Kategorien
+
+Falls du die 10 vordefinierten Content-Themen verwenden möchtest:
+
+```bash
+python main.py --input data/input/deine_artikel.xlsx --use-predefined
+```
+
+**Verwendet:**
+- ✅ 10 Content-Themes (AI & Innovation, Employee Stories, Culture & Values, etc.)
+- ⚠️ Keine neuen Topics - nur vordefinierte Kategorien
+
+### Option 4: Ohne Web Scraping
+
+Falls URLs nicht erreichbar oder nur Kommentare wichtig:
+
+```bash
+python main.py --input data/input/deine_artikel.xlsx --no-scraping
+```
+
+### Option 5: Schneller (ohne LLM)
+
+```bash
+python main.py --input data/input/deine_artikel.xlsx --no-llm
 ```
 
 **Verwendet Lexikon-Modus:**
 - ✅ ~10x schneller
 - ⚠️ Etwas geringere Genauigkeit
-
-### Option 3: Ohne Web Scraping
-
-Falls URLs nicht erreichbar oder nur Kommentare wichtig:
-
-```bash
-python main_with_llm.py --input data/input/deine_artikel.xlsx --no-scraping
-```
-
-### Option 4: Ohne Clustering
-
-```bash
-python main_with_llm.py --input data/input/deine_artikel.xlsx --no-clustering
-```
 
 ---
 
@@ -160,7 +177,7 @@ Artikel werden geclustert basierend auf:
 ### Custom Spalten
 
 ```bash
-python main_with_llm.py \
+python main.py \
   --input data/input/datei.xlsx \
   --url-column C \
   --comment-column D
@@ -169,7 +186,7 @@ python main_with_llm.py \
 ### Alle Optionen
 
 ```bash
-python main_with_llm.py --help
+python main.py --help
 ```
 
 Zeigt:
@@ -177,9 +194,12 @@ Zeigt:
 --input PATH          Input Excel-Datei
 --url-column COL      Spalte mit URLs (Standard: A)
 --comment-column COL  Spalte mit Kommentaren (Standard: B)
---no-llm             Verwende Lexikon statt LLM
---no-scraping        Überspringe Web Scraping
---no-clustering      Überspringe Clustering
+--use-predefined      Verwende vordefinierte Kategorien statt Auto-Clustering
+--manual-topics       Verwende fixe Anzahl Topics (benötigt --num-topics)
+--num-topics N        Fixe Anzahl Topics (nur mit --manual-topics)
+--no-llm              Verwende Lexikon statt LLM
+--no-scraping         Überspringe Web Scraping
+--no-clustering       Überspringe Clustering komplett
 ```
 
 ---
@@ -198,7 +218,7 @@ cp meine_artikel.xlsx data/input/
 ```bash
 # In Corporate-Umgebung (Windows)
 cd P:\IMPORTANT\Projects\SentimentAnalysis
-python main_with_llm.py --input data/input/meine_artikel.xlsx
+python main.py --input data/input/meine_artikel.xlsx
 ```
 
 **Output:**
@@ -224,23 +244,28 @@ Analysiere 150 Kommentare mit bert Model...
 ✓ 150 Kommentare analysiert
   Durchschnittliches Sentiment: +0.456
 
-[4/6] Kategorisiere Artikel...
-✓ Kategorisierung abgeschlossen
-  - HR: 15 Artikel
-  - IT: 20 Artikel
-  - Management: 10 Artikel
-  - Training: 5 Artikel
+[4/6] Entdecke optimale Anzahl Themen automatisch (AUTO-OPTIMIERT - DEFAULT)...
+      (Verwendet Silhouette Score - testet k=2 bis k=10)
+Teste k=2: Silhouette score = 0.234
+Teste k=3: Silhouette score = 0.312
+Teste k=4: Silhouette score = 0.445
+Teste k=5: Silhouette score = 0.498  ← OPTIMAL
+Teste k=6: Silhouette score = 0.456
+...
+✓ Optimale Anzahl Themen: 5 (Silhouette Score: 0.498)
 
-[5/6] Clustere Artikel...
-✓ 12 Cluster gefunden
-  - HR_recruiting: 8 Artikel
-  - IT_software: 12 Artikel
-  - Management_strategy: 6 Artikel
+[5/6] Clustere Artikel in 5 Topics...
+✓ 5 Topics gefunden:
+  - Topic_0 (HR & Recruiting): 15 Artikel
+  - Topic_1 (AI & Innovation): 20 Artikel
+  - Topic_2 (Employee Benefits): 10 Artikel
+  - Topic_3 (Training & Development): 8 Artikel
+  - Topic_4 (Organizational Change): 7 Artikel
 
-Top Cluster nach Sentiment:
-  HR_recruiting: 8 Artikel, Sentiment: +0.88
-  Training_workshop: 5 Artikel, Sentiment: +0.76
-  IT_software: 12 Artikel, Sentiment: +0.42
+Top Topics nach Sentiment:
+  Topic_3 (Training & Development): 8 Artikel, Sentiment: +0.88
+  Topic_0 (HR & Recruiting): 15 Artikel, Sentiment: +0.76
+  Topic_1 (AI & Innovation): 20 Artikel, Sentiment: +0.42
   ...
 
 [6/6] Erstelle Reports...
@@ -298,17 +323,20 @@ open data/output/llm_analysis_20251022_143022.xlsx
 
 ```bash
 # Verwende Lexikon-Modus (schneller)
-python main_with_llm.py --input datei.xlsx --no-llm
+python main.py --input datei.xlsx --no-llm
 
 # Oder: Erst ohne Scraping testen
-python main_with_llm.py --input datei.xlsx --no-scraping
+python main.py --input datei.xlsx --no-scraping
+
+# Oder: Verwende manuelle Topic-Anzahl (schneller als Auto-Optimierung)
+python main.py --input datei.xlsx --manual-topics --num-topics 5
 ```
 
 ### Für wenige Artikel (<50):
 
 ```bash
-# Verwende LLM für beste Genauigkeit
-python main_with_llm.py --input datei.xlsx
+# Verwende LLM + Auto-Clustering für beste Genauigkeit
+python main.py --input datei.xlsx
 ```
 
 ---

@@ -12,13 +12,44 @@ Ich habe automatische Cluster-Optimierung mit Silhouette Score implementiert.
 
 ## 📊 Drei Modi für Cluster-Anzahl
 
-### 1️⃣ Manuell (DEFAULT)
+### 1️⃣ Automatisch Optimiert mit Silhouette Score (DEFAULT) ⭐⭐⭐
+
+System findet automatisch die optimale Anzahl Cluster.
+
+**Command (DEFAULT):**
+```bash
+python main.py --input articles.xlsx
+```
+
+**Wann verwenden:**
+- Erste Analyse - keine Ahnung wieviele Themen existieren (DEFAULT!)
+- Du willst die objektiv beste Clustering-Qualität
+- Die meisten Use Cases
+
+**Was passiert:**
+```
+Finding optimal cluster count (testing k=2 to k=10)...
+  k=2: Silhouette score = 0.125
+  k=3: Silhouette score = 0.243
+  k=4: Silhouette score = 0.318
+  k=5: Silhouette score = 0.402
+  k=6: Silhouette score = 0.481
+  k=7: Silhouette score = 0.529  ← OPTIMAL
+  k=8: Silhouette score = 0.493
+  k=9: Silhouette score = 0.445
+  k=10: Silhouette score = 0.412
+✓ Optimal cluster count: k=7 (Silhouette score: 0.529)
+```
+
+---
+
+### 2️⃣ Manuell
 
 Du gibst die Anzahl Themen vor.
 
 **Command:**
 ```bash
-python main_with_llm.py --input articles.xlsx --num-topics 10
+python main.py --input articles.xlsx --manual-topics --num-topics 10
 ```
 
 **Wann verwenden:**
@@ -28,46 +59,13 @@ python main_with_llm.py --input articles.xlsx --num-topics 10
 
 ---
 
-### 2️⃣ Automatisch Optimiert mit Silhouette Score ⭐ EMPFOHLEN
-
-System findet automatisch die optimale Anzahl Cluster.
-
-**Command:**
-```bash
-python main_with_llm.py --input articles.xlsx --auto-clusters
-```
-
-**Wann verwenden:**
-- Erste Analyse - keine Ahnung wieviele Themen existieren
-- Du willst die objektiv beste Clustering-Qualität
-- Bereit etwas länger zu warten für besseres Ergebnis
-
-**Was passiert:**
-```
-Finding optimal cluster count (testing k=2 to k=20)...
-  k=2: Silhouette score = 0.125
-  k=3: Silhouette score = 0.243
-  k=4: Silhouette score = 0.318
-  k=5: Silhouette score = 0.402
-  k=6: Silhouette score = 0.481
-  k=7: Silhouette score = 0.529  ← OPTIMAL
-  k=8: Silhouette score = 0.493
-  k=9: Silhouette score = 0.445
-  ...
-✓ Optimal cluster count: k=7 (Silhouette score: 0.529)
-```
-
-→ System testet verschiedene k-Werte und wählt das beste aus!
-
----
-
 ### 3️⃣ Vordefinierte Kategorien
 
-Keine Cluster-Optimierung - verwendet fixe Kategorien.
+Keine Cluster-Optimierung - verwendet fixe Kategorien aus config/settings.py.
 
 **Command:**
 ```bash
-python main_with_llm.py --input articles.xlsx --use-predefined
+python main.py --input articles.xlsx --use-predefined
 ```
 
 ---
@@ -107,43 +105,18 @@ Durchschnitt über alle Punkte → Gesamt-Qualität des Clusterings
 
 ## 📈 Beispiel-Output
 
-### Standard-Modus (manuell k=10):
+### Auto-Optimiert Modus (DEFAULT) ⭐:
 
 ```bash
-python main_with_llm.py --input articles.xlsx --num-topics 10
+python main.py --input articles.xlsx
 ```
 
 **Output:**
 ```
-[4/6] Entdecke 10 Themen automatisch (UNSUPERVISED - DEFAULT)...
-Clustering into 10 topics...
-Final Silhouette score: 0.423
+[4/6] Entdecke optimale Anzahl Themen automatisch (AUTO-OPTIMIERT - DEFAULT)...
+      (Verwendet Silhouette Score - testet k=2 bis k=10)
 
-✓ 9 Themen entdeckt
-  Silhouette Score: 0.423
-
-Entdeckte Themen:
-  - Remote & Hybrid: 18 articles (remote, homeoffice, flexibility)
-  - ChatGPT & Automation: 22 articles (chatgpt, automation, workflow)
-  ...
-```
-
-→ Du bekommst den Silhouette Score, aber k=10 war deine Vorgabe
-
----
-
-### Auto-Optimiert Modus:
-
-```bash
-python main_with_llm.py --input articles.xlsx --auto-clusters
-```
-
-**Output:**
-```
-[4/6] Entdecke optimale Anzahl Themen automatisch (UNSUPERVISED - AUTO-OPTIMIERT)...
-      (Verwendet Silhouette Score zur Bestimmung der optimalen Cluster-Anzahl)
-
-Finding optimal cluster count (testing k=2 to k=20)...
+Finding optimal cluster count (testing k=2 to k=10)...
   k=2: Silhouette score = 0.125
   k=3: Silhouette score = 0.243
   k=4: Silhouette score = 0.318
@@ -193,7 +166,7 @@ Entdeckte Themen:
 ### Algorithmus:
 
 1. **TF-IDF Vektorisierung** aller Artikel
-2. **Für jedes k von 2 bis 20:**
+2. **Für jedes k von 2 bis 10:**
    - Führe K-Means Clustering durch
    - Berechne Silhouette Score
    - Speichere Score
@@ -237,7 +210,7 @@ cosine_similarity = dot_product / (magnitude_a * magnitude_b)
 
 ## 🎯 Wann welcher Modus?
 
-### Verwende `--auto-clusters` wenn:
+### Verwende `(DEFAULT - no flag needed)` wenn:
 
 ✅ **Erste Analyse** - keine Ahnung wieviele Themen
 ✅ **Objektive Qualität** wichtiger als Geschwindigkeit
@@ -247,7 +220,7 @@ cosine_similarity = dot_product / (magnitude_a * magnitude_b)
 **Beispiel:**
 > "Ich habe 200 Artikel aus dem letzten Jahr. Wieviele Themen gibt es?"
 
-→ `--auto-clusters` findet objektiv die beste Anzahl
+→ `(DEFAULT - no flag needed)` findet objektiv die beste Anzahl
 
 ---
 
@@ -282,7 +255,7 @@ cosine_similarity = dot_product / (magnitude_a * magnitude_b)
 
 | Modus | Dauer (100 Artikel) | Qualität | Konsistenz |
 |-------|---------------------|----------|------------|
-| `--auto-clusters` | ~2-3 Minuten | ⭐⭐⭐⭐⭐ Optimal | ⭐⭐ Variiert |
+| `(DEFAULT - no flag needed)` | ~2-3 Minuten | ⭐⭐⭐⭐⭐ Optimal | ⭐⭐ Variiert |
 | `--num-topics 10` | ~30 Sekunden | ⭐⭐⭐⭐ Gut | ⭐⭐⭐⭐ Gut |
 | `--use-predefined` | ~20 Sekunden | ⭐⭐⭐ Ok | ⭐⭐⭐⭐⭐ Perfekt |
 
@@ -362,7 +335,7 @@ k=15: Silhouette score = 0.187
 
 ```bash
 # Finde optimale Cluster-Anzahl
-python main_with_llm.py --input articles.xlsx --auto-clusters
+python main.py --input articles.xlsx (DEFAULT - no flag needed)
 ```
 
 **Output sagt:** k=7 ist optimal mit Score 0.529
@@ -373,7 +346,7 @@ python main_with_llm.py --input articles.xlsx --auto-clusters
 
 ```bash
 # Verwende gefundenes optimal k direkt
-python main_with_llm.py --input articles_next_month.xlsx --num-topics 7
+python main.py --input articles_next_month.xlsx --num-topics 7
 ```
 
 → Schneller, nutzt optimales k von vorheriger Analyse
@@ -384,8 +357,8 @@ python main_with_llm.py --input articles_next_month.xlsx --num-topics 7
 
 ```bash
 # Konsistente Kategorien über Zeit
-python main_with_llm.py --input q1_articles.xlsx --use-predefined
-python main_with_llm.py --input q2_articles.xlsx --use-predefined
+python main.py --input q1_articles.xlsx --use-predefined
+python main.py --input q2_articles.xlsx --use-predefined
 ```
 
 → Gleiche Kategorien → vergleichbare Reports
@@ -412,7 +385,7 @@ python main_with_llm.py --input q2_articles.xlsx --use-predefined
 
 **Workaround:** Teste manuell verschiedene k:
 ```bash
-python main_with_llm.py --input articles.xlsx --num-topics 25
+python main.py --input articles.xlsx --num-topics 25
 # Check Silhouette score in output
 ```
 
@@ -428,7 +401,7 @@ python main_with_llm.py --input articles.xlsx --num-topics 25
 
 ---
 
-### "Warum dauert --auto-clusters länger?"
+### "Warum dauert (DEFAULT - no flag needed) länger?"
 
 **Grund:** Führt K-Means 19x aus (k=2 bis k=20)
 
@@ -460,7 +433,7 @@ Die optimale Cluster-Größe wird JETZT vollautomatisch mit Silhouette Score bes
 
 ```bash
 # Automatische Optimierung
-python main_with_llm.py --input articles.xlsx --auto-clusters
+python main.py --input articles.xlsx (DEFAULT - no flag needed)
 ```
 
 **Wie es funktioniert:**
@@ -475,6 +448,6 @@ python main_with_llm.py --input articles.xlsx --auto-clusters
 - Keine manuelle Auswahl nötig
 
 **Empfehlung:**
-- Erste Analyse: `--auto-clusters` ⭐
+- Erste Analyse: `(DEFAULT - no flag needed)` ⭐
 - Schnelle Analyse: `--num-topics 10`
 - Konsistenz: `--use-predefined`
