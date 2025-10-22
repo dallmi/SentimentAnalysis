@@ -250,6 +250,12 @@ def parse_arguments():
         help='Anzahl Themen für automatische Entdeckung (Standard: 10, nur ohne --use-predefined)'
     )
 
+    parser.add_argument(
+        '--auto-clusters',
+        action='store_true',
+        help='Optimale Cluster-Anzahl automatisch bestimmen mit Silhouette Score (überschreibt --num-topics)'
+    )
+
     return parser.parse_args()
 
 
@@ -395,11 +401,19 @@ def main():
 
     elif TOPIC_DISCOVERY_AVAILABLE:
         # UNSUPERVISED: Entdecke Themen automatisch (DEFAULT!)
-        logger.info(f"\n[4/6] Entdecke {args.num_topics} Themen automatisch (UNSUPERVISED - DEFAULT)...")
+        if args.auto_clusters:
+            logger.info(f"\n[4/6] Entdecke optimale Anzahl Themen automatisch (UNSUPERVISED - AUTO-OPTIMIERT)...")
+            logger.info("      (Verwendet Silhouette Score zur Bestimmung der optimalen Cluster-Anzahl)")
+        else:
+            logger.info(f"\n[4/6] Entdecke {args.num_topics} Themen automatisch (UNSUPERVISED - DEFAULT)...")
         logger.info("      (Keine vordefinierten Kategorien - entdeckt was Artikel tatsächlich behandeln)")
         logger.info("      (Verwende --use-predefined für vordefinierte Kategorien)")
 
-        discoverer = TopicDiscovery(num_topics=args.num_topics, min_articles_per_topic=2)
+        discoverer = TopicDiscovery(
+            num_topics=args.num_topics,
+            min_articles_per_topic=2,
+            auto_optimize=args.auto_clusters
+        )
 
         # Prepare articles for topic discovery
         articles_list = []
@@ -420,6 +434,14 @@ def main():
             articles_df.at[idx, 'keywords'] = topic_results['topic_keywords'].get(topic_id, [])
 
         logger.info(f"✓ {len(topic_results['valid_topics'])} Themen entdeckt")
+        logger.info(f"  Silhouette Score: {topic_results['silhouette_score']:.3f}")
+
+        if args.auto_clusters and topic_results.get('silhouette_scores_by_k'):
+            logger.info("\nSilhouette Scores pro Cluster-Anzahl:")
+            for k, score in sorted(topic_results['silhouette_scores_by_k'].items()):
+                marker = " ← OPTIMAL" if k == topic_results['num_topics'] else ""
+                logger.info(f"  k={k}: {score:.3f}{marker}")
+
         logger.info("\nEntdeckte Themen:")
         for topic_id, topic_name in topic_results['valid_topics'].items():
             count = topic_results['topic_sizes'][topic_id]

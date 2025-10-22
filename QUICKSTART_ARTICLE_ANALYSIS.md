@@ -61,6 +61,9 @@ python main_with_llm.py --input data/input/meine_artikel.xlsx --use-predefined
 ### Weitere Optionen:
 
 ```bash
+# Optimale Cluster-Anzahl automatisch finden (Silhouette Score) 🆕
+python main_with_llm.py --input data/input/meine_artikel.xlsx --auto-clusters
+
 # Mehr Themen entdecken (detaillierter)
 python main_with_llm.py --input data/input/meine_artikel.xlsx --num-topics 15
 
@@ -73,6 +76,9 @@ python main_with_llm.py --input data/input/meine_artikel.xlsx --no-llm
 # Ohne Web Scraping (nur Kommentar-Analyse)
 python main_with_llm.py --input data/input/meine_artikel.xlsx --no-scraping
 ```
+
+**💡 Tipp:** Verwende `--auto-clusters` für erste Analyse - findet automatisch die optimale Anzahl Themen!
+→ Siehe [CLUSTER_OPTIMIZATION.md](CLUSTER_OPTIMIZATION.md) für Details zum Silhouette Score
 
 ## 📈 3. Ergebnis öffnen
 

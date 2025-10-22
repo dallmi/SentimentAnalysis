@@ -30,16 +30,18 @@ class TopicDiscovery:
     Discovers topics automatically from article text using TF-IDF and clustering
     """
 
-    def __init__(self, num_topics: int = 10, min_articles_per_topic: int = 2):
+    def __init__(self, num_topics: int = 10, min_articles_per_topic: int = 2, auto_optimize: bool = False):
         """
         Initialize topic discovery
 
         Args:
-            num_topics: Target number of topics to discover
+            num_topics: Target number of topics to discover (ignored if auto_optimize=True)
             min_articles_per_topic: Minimum articles needed to form a topic
+            auto_optimize: Automatically determine optimal number of clusters using Silhouette score
         """
         self.num_topics = num_topics
         self.min_articles_per_topic = min_articles_per_topic
+        self.auto_optimize = auto_optimize
         self.stopwords = self._load_stopwords()
 
     def _load_stopwords(self) -> set:
@@ -254,6 +256,120 @@ class TopicDiscovery:
 
         return assignments
 
+    def _calculate_silhouette_score(
+        self,
+        vectors: List[Dict[str, float]],
+        assignments: List[int]
+    ) -> float:
+        """
+        Calculate Silhouette score for clustering quality
+
+        Silhouette score ranges from -1 to 1:
+        - 1: Perfect clustering (samples far from other clusters)
+        - 0: Overlapping clusters
+        - -1: Wrong clustering (samples closer to other clusters)
+
+        Args:
+            vectors: TF-IDF vectors
+            assignments: Cluster assignments
+
+        Returns:
+            Average Silhouette score
+        """
+        n = len(vectors)
+        if n == 0:
+            return 0.0
+
+        silhouette_scores = []
+
+        for i in range(n):
+            # Current cluster
+            cluster_i = assignments[i]
+
+            # a(i): Average distance to points in same cluster
+            same_cluster_indices = [j for j in range(n) if assignments[j] == cluster_i and j != i]
+
+            if not same_cluster_indices:
+                # Only point in cluster
+                silhouette_scores.append(0.0)
+                continue
+
+            a_i = sum(
+                1 - self._cosine_similarity(vectors[i], vectors[j])  # Distance = 1 - similarity
+                for j in same_cluster_indices
+            ) / len(same_cluster_indices)
+
+            # b(i): Minimum average distance to points in other clusters
+            other_clusters = set(assignments) - {cluster_i}
+
+            if not other_clusters:
+                # Only one cluster
+                silhouette_scores.append(0.0)
+                continue
+
+            b_i = float('inf')
+            for other_cluster in other_clusters:
+                other_cluster_indices = [j for j in range(n) if assignments[j] == other_cluster]
+
+                if other_cluster_indices:
+                    avg_dist = sum(
+                        1 - self._cosine_similarity(vectors[i], vectors[j])
+                        for j in other_cluster_indices
+                    ) / len(other_cluster_indices)
+
+                    b_i = min(b_i, avg_dist)
+
+            # Silhouette score for point i
+            s_i = (b_i - a_i) / max(a_i, b_i) if max(a_i, b_i) > 0 else 0
+            silhouette_scores.append(s_i)
+
+        return sum(silhouette_scores) / len(silhouette_scores) if silhouette_scores else 0.0
+
+    def _find_optimal_clusters(
+        self,
+        vectors: List[Dict[str, float]],
+        min_k: int = 2,
+        max_k: int = 20
+    ) -> Tuple[int, Dict[int, float]]:
+        """
+        Find optimal number of clusters using Silhouette score
+
+        Args:
+            vectors: TF-IDF vectors
+            min_k: Minimum number of clusters to try
+            max_k: Maximum number of clusters to try
+
+        Returns:
+            Tuple of (optimal_k, silhouette_scores_dict)
+        """
+        n = len(vectors)
+
+        # Adjust max_k based on number of documents
+        max_k = min(max_k, n // 3)  # At least 3 docs per cluster on average
+        max_k = max(max_k, min_k)  # Ensure max_k >= min_k
+
+        logger.info(f"Finding optimal cluster count (testing k={min_k} to k={max_k})...")
+
+        silhouette_scores = {}
+
+        for k in range(min_k, max_k + 1):
+            # Cluster with k clusters
+            assignments = self._simple_kmeans(vectors, k)
+
+            # Calculate Silhouette score
+            score = self._calculate_silhouette_score(vectors, assignments)
+            silhouette_scores[k] = score
+
+            logger.info(f"  k={k}: Silhouette score = {score:.3f}")
+
+        # Find k with highest Silhouette score
+        optimal_k = max(silhouette_scores.items(), key=lambda x: x[1])[0]
+        best_score = silhouette_scores[optimal_k]
+
+        logger.info(f"✓ Optimal cluster count: k={optimal_k} (Silhouette score: {best_score:.3f})")
+
+        return optimal_k, silhouette_scores
+
     def discover_topics(
         self,
         articles: List[Dict],
@@ -282,15 +398,31 @@ class TopicDiscovery:
         logger.info("Computing TF-IDF vectors...")
         tfidf_vectors, vocab = self._compute_tfidf(documents)
 
+        # Determine optimal number of clusters if auto_optimize enabled
+        if self.auto_optimize:
+            optimal_k, silhouette_scores = self._find_optimal_clusters(
+                tfidf_vectors,
+                min_k=max(2, self.min_articles_per_topic),
+                max_k=min(20, len(articles) // 3)
+            )
+            num_topics = optimal_k
+        else:
+            num_topics = self.num_topics
+            silhouette_scores = {}
+
         # Cluster with K-Means
-        logger.info(f"Clustering into {self.num_topics} topics...")
-        cluster_assignments = self._simple_kmeans(tfidf_vectors, self.num_topics)
+        logger.info(f"Clustering into {num_topics} topics...")
+        cluster_assignments = self._simple_kmeans(tfidf_vectors, num_topics)
+
+        # Calculate final Silhouette score
+        final_silhouette = self._calculate_silhouette_score(tfidf_vectors, cluster_assignments)
+        logger.info(f"Final Silhouette score: {final_silhouette:.3f}")
 
         # Extract topic keywords (top TF-IDF terms per cluster)
         topic_keywords = {}
         topic_sizes = Counter(cluster_assignments)
 
-        for topic_id in range(self.num_topics):
+        for topic_id in range(num_topics):
             # Get all vectors in this cluster
             cluster_indices = [i for i, c in enumerate(cluster_assignments) if c == topic_id]
 
@@ -336,6 +468,9 @@ class TopicDiscovery:
             'topic_keywords': topic_keywords,
             'topic_sizes': dict(topic_sizes),
             'valid_topics': valid_topics,
+            'num_topics': num_topics,
+            'silhouette_score': final_silhouette,
+            'silhouette_scores_by_k': silhouette_scores if self.auto_optimize else {},
         }
 
     def get_topic_sentiment_analysis(
