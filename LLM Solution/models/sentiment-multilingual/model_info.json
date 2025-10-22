@@ -1,0 +1,23 @@
+{
+  "model_name": "nlptown/bert-base-multilingual-uncased-sentiment",
+  "model_type": "bert",
+  "task": "sentiment-analysis",
+  "languages": [
+    "en",
+    "de",
+    "fr",
+    "it",
+    "es",
+    "nl"
+  ],
+  "num_labels": 5,
+  "labels": [
+    "1 star",
+    "2 stars",
+    "3 stars",
+    "4 stars",
+    "5 stars"
+  ],
+  "description": "Fine-tuned on multilingual product reviews (5-star rating)",
+  "size_mb": 641.7297105789185
+}
