@@ -14,6 +14,7 @@ import sys
 from pathlib import Path
 import pandas as pd
 from datetime import datetime
+import json
 
 # Füge LLM Solution zum Path hinzu
 sys.path.insert(0, str(Path(__file__).parent / "LLM Solution"))
@@ -258,6 +259,13 @@ def parse_arguments():
         help='Verwende fixe Anzahl Themen statt Auto-Optimierung (benötigt --num-topics)'
     )
 
+    parser.add_argument(
+        '--articles-json',
+        type=str,
+        default=None,
+        help='Path to JSON file with pre-extracted article content (bypasses web scraping)'
+    )
+
     return parser.parse_args()
 
 
@@ -339,9 +347,43 @@ def main():
 
     logger.info(f"✓ {len(grouped_data)} unique Artikel gefunden")
 
-    # 2. Scrape Artikel-Inhalte
+    # 2. Scrape Artikel-Inhalte oder lade aus JSON
     articles = []
-    if not args.no_scraping:
+
+    # Check if pre-extracted articles JSON is provided
+    articles_content = {}
+    if args.articles_json:
+        logger.info(f"\n[2/6] Loading pre-extracted articles from {args.articles_json}...")
+        try:
+            with open(args.articles_json, 'r', encoding='utf-8') as f:
+                articles_content = json.load(f)
+            logger.info(f"✓ Loaded {len(articles_content)} pre-extracted articles")
+        except FileNotFoundError:
+            logger.error(f"❌ Articles JSON file not found: {args.articles_json}")
+            return 1
+        except json.JSONDecodeError as e:
+            logger.error(f"❌ Invalid JSON in {args.articles_json}: {e}")
+            return 1
+
+    if args.articles_json:
+        # Use pre-extracted content from JSON
+        logger.info("\n[2/6] Using pre-extracted article content...")
+        for idx, row in grouped_data.iterrows():
+            url = row['url']
+            article_info = articles_content.get(url, {})
+
+            articles.append({
+                'url': url,
+                'title': article_info.get('title', 'N/A'),
+                'content': article_info.get('content', ''),
+                'comments': row['comment'],
+                'success': bool(article_info.get('content'))
+            })
+
+        successful = sum(1 for a in articles if a['success'])
+        logger.info(f"✓ {successful}/{len(articles)} articles with content loaded from JSON")
+
+    elif not args.no_scraping:
         logger.info("\n[2/6] Scrape Artikel-Inhalte...")
         # Initialize scraper with SSL disabled for corporate self-signed certificates
         scraper = WebScraper(verify_ssl=False)
