@@ -48,7 +48,7 @@ python main_with_llm.py --input data/input/deine_artikel.xlsx
 1. Lädt Excel-Datei
 2. Scrapt Artikel-Inhalte von URLs
 3. Analysiert Kommentare mit **BERT-Model** (hohe Genauigkeit)
-4. Kategorisiert Artikel (HR, IT, Management, etc.)
+4. Kategorisiert Artikel nach **Content-Themen** (KI & Innovation, Mitarbeiter-Stories, Events, etc.)
 5. Clustert ähnliche Artikel
 6. Erstellt detaillierten Excel-Report
 
@@ -91,20 +91,22 @@ data/output/llm_analysis_20251022_143022.xlsx
 ### Sheets:
 
 #### 1. **Artikel** - Übersicht aller Artikel
-| URL | Titel | Kategorie | Cluster | Avg_Sentiment | Total_Comments | Positive | Negative | Neutral |
-|-----|-------|-----------|---------|---------------|----------------|----------|----------|---------|
-| ... | ...   | HR        | HR_recruiting | +0.85 | 12 | 10 | 1 | 1 |
+| URL | Titel | Content-Thema | Cluster | Avg_Sentiment | Total_Comments | Positive | Negative | Neutral |
+|-----|-------|---------------|---------|---------------|----------------|----------|----------|---------|
+| ... | ...   | Mitarbeiter-Stories | Mitarbeiter-Stories_interview | +0.85 | 12 | 10 | 1 | 1 |
 
-#### 2. **Kategorien** - Sentiment pro Kategorie
-| Kategorie | Avg_Sentiment | Anzahl_Artikel | Positive_Kommentare | Negative_Kommentare |
-|-----------|---------------|----------------|---------------------|---------------------|
-| HR        | +0.65         | 25             | 180                 | 45                  |
-| IT        | +0.42         | 30             | 145                 | 78                  |
-| Management| +0.15         | 15             | 65                  | 52                  |
+#### 2. **Kategorien** - Sentiment pro Content-Thema ⭐ **WICHTIGSTE ANSICHT**
+| Content-Thema | Avg_Sentiment | Anzahl_Artikel | Positive_Kommentare | Negative_Kommentare |
+|---------------|---------------|----------------|---------------------|---------------------|
+| Mitarbeiter-Stories | +0.88 | 15 | 142 | 5 |
+| Events & Networking | +0.75 | 20 | 158 | 18 |
+| Wellness & Benefits | +0.68 | 12 | 95 | 12 |
+| KI & Innovation | +0.45 | 25 | 145 | 48 |
+| Organisatorische Änderungen | -0.15 | 12 | 35 | 75 |
 
-**→ Interpretation:** HR-Artikel bekommen bestes Feedback! 🎯
+**→ Interpretation:** Mitarbeiter-Stories bekommen bestes Feedback! 🎯
 
-#### 3. **Clusters** - Thematische Gruppen
+#### 3. **Clusters** - Thematische Gruppen innerhalb der Content-Themen
 | Cluster | Avg_Sentiment | Anzahl_Artikel |
 |---------|---------------|----------------|
 | HR_recruiting | +0.88 | 8 |

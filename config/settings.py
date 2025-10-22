@@ -24,14 +24,80 @@ SENTIMENT_THRESHOLDS = {
     'very_negative': -0.5
 }
 
-# Kategorisierung
+# Kategorisierung nach INHALTS-THEMEN (nicht Abteilungen!)
 MIN_COMMENTS_FOR_ANALYSIS = 1  # Mindestanzahl Kommentare pro Artikel
+
+# Content-Theme Kategorien: Was ist das THEMA des Artikels?
 CATEGORY_KEYWORDS = {
-    'HR': ['mitarbeiter', 'personal', 'team', 'hr', 'recruiting', 'benefits'],
-    'IT': ['software', 'hardware', 'system', 'it', 'technologie', 'digital'],
-    'Management': ['strategie', 'führung', 'management', 'vision', 'ziele'],
-    'Kommunikation': ['kommunikation', 'mitteilung', 'ankündigung', 'news'],
-    'Prozesse': ['prozess', 'ablauf', 'workflow', 'optimierung', 'effizienz'],
+    # Technologie & Innovation
+    'KI & Innovation': [
+        'künstliche intelligenz', 'ki', 'ai', 'machine learning', 'chatgpt',
+        'automation', 'innovation', 'digital transformation', 'digitalisierung',
+        'startup', 'technologie', 'zukunft', 'forschung'
+    ],
+
+    # Persönliche Geschichten & Erfolge
+    'Mitarbeiter-Stories': [
+        'mitarbeiter', 'kollege', 'team', 'geschichte', 'erfahrung', 'interview',
+        'porträt', 'karriere', 'erfolg', 'persönlich', 'story', 'profil',
+        'erlebnis', 'werdegang', 'mein weg'
+    ],
+
+    # Unternehmenskultur & Werte
+    'Unternehmenskultur': [
+        'kultur', 'werte', 'vision', 'mission', 'diversität', 'inklusion',
+        'diversity', 'zusammenarbeit', 'teamwork', 'gemeinschaft', 'values',
+        'purpose', 'nachhaltigkeit', 'verantwortung', 'ethik'
+    ],
+
+    # Lernen & Entwicklung
+    'Weiterbildung & Training': [
+        'training', 'schulung', 'workshop', 'seminar', 'weiterbildung',
+        'lernen', 'entwicklung', 'kurs', 'coaching', 'mentoring',
+        'upskilling', 'fortbildung', 'akademie', 'programm'
+    ],
+
+    # Veranstaltungen & Events
+    'Events & Networking': [
+        'event', 'veranstaltung', 'konferenz', 'meetup', 'networking',
+        'feier', 'jubiläum', 'fest', 'party', 'treffen', 'community',
+        'hackathon', 'summit', 'conference'
+    ],
+
+    # Produkte & Projekte
+    'Produkt-News': [
+        'produkt', 'launch', 'release', 'feature', 'projekt', 'entwicklung',
+        'beta', 'update', 'version', 'lösung', 'service', 'plattform',
+        'tool', 'application', 'software'
+    ],
+
+    # Unternehmenserfolge & Zahlen
+    'Business & Erfolge': [
+        'quartal', 'umsatz', 'wachstum', 'erfolg', 'award', 'auszeichnung',
+        'partner', 'kunde', 'vertrag', 'deal', 'expansion', 'markt',
+        'geschäftsjahr', 'finanzen', 'gewinn'
+    ],
+
+    # Wellness & Work-Life
+    'Wellness & Benefits': [
+        'gesundheit', 'wellness', 'sport', 'fitness', 'work-life-balance',
+        'flexible', 'homeoffice', 'remote', 'benefits', 'gesundheitstag',
+        'yoga', 'meditation', 'wohlbefinden', 'mental health'
+    ],
+
+    # Change & Transformation
+    'Organisatorische Änderungen': [
+        'change', 'transformation', 'reorganisation', 'umstrukturierung',
+        'strategie', 'führung', 'management', 'neue struktur', 'änderung',
+        'prozess', 'optimierung', 'effizienz', 'umstellung'
+    ],
+
+    # Soziale Verantwortung
+    'CSR & Nachhaltigkeit': [
+        'nachhaltigkeit', 'csr', 'umwelt', 'klimaschutz', 'sozial',
+        'spende', 'charity', 'volunteering', 'engagement', 'green',
+        'ökologisch', 'recycling', 'co2', 'klimaneutral'
+    ],
 }
 
 # Output Einstellungen

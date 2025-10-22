@@ -65,35 +65,45 @@ start data\output\llm_analysis_20251022_143022.xlsx
 
 ### Sheet "Kategorien" - **Wichtigste Ansicht!**
 
-Hier siehst du die Antwort auf deine Frage:
+Hier siehst du die Antwort auf deine Frage nach **Content-Themen** (nicht Abteilungen!):
 
-| Kategorie | Avg_Sentiment | Anzahl_Artikel | Positive_Kommentare | Negative_Kommentare |
-|-----------|---------------|----------------|---------------------|---------------------|
-| Training  | +0.82         | 15             | 120                 | 8                   |
-| HR        | +0.65         | 25             | 180                 | 45                  |
-| IT        | +0.42         | 30             | 145                 | 78                  |
-| Management| +0.15         | 10             | 65                  | 52                  |
+| Content-Thema | Avg_Sentiment | Anzahl_Artikel | Positive_Kommentare | Negative_Kommentare |
+|---------------|---------------|----------------|---------------------|---------------------|
+| Mitarbeiter-Stories | +0.88 | 15 | 142 | 5 |
+| Events & Networking | +0.75 | 20 | 158 | 18 |
+| Wellness & Benefits | +0.68 | 12 | 95 | 12 |
+| Weiterbildung & Training | +0.62 | 18 | 120 | 25 |
+| KI & Innovation | +0.45 | 25 | 145 | 48 |
+| Produkt-News | +0.38 | 22 | 125 | 58 |
+| Unternehmenskultur | +0.35 | 10 | 65 | 35 |
+| Business & Erfolge | +0.22 | 8 | 45 | 30 |
+| Organisatorische Änderungen | -0.15 | 12 | 35 | 75 |
+| CSR & Nachhaltigkeit | +0.55 | 8 | 52 | 12 |
 
 **Interpretation:**
-- ✅ **Training-Artikel** bekommen bestes Feedback (+0.82)
-- ✅ **HR-Artikel** kommen gut an (+0.65)
-- ⚠️ **IT-Artikel** sind ok (+0.42)
-- ⚠️ **Management-Artikel** brauchen Verbesserung (+0.15)
+- ✅ **Mitarbeiter-Stories** funktionieren hervorragend! (+0.88)
+- ✅ **Events & Networking** kommen sehr gut an (+0.75)
+- ✅ **Wellness & Benefits** werden positiv aufgenommen (+0.68)
+- ✅ **Weiterbildung** ist beliebt (+0.62)
+- ⚠️ **KI & Innovation** ist ok, könnte verständlicher sein (+0.45)
+- ⚠️ **Organisatorische Änderungen** erzeugen negative Reaktionen (-0.15)
 
 ### Sheet "Clusters" - Detaillierte Themen-Gruppen
 
 | Cluster | Avg_Sentiment | Anzahl_Artikel |
 |---------|---------------|----------------|
-| Training_workshop | +0.88 | 8 |
-| HR_recruiting | +0.75 | 12 |
-| IT_software | +0.35 | 15 |
-| Management_restructuring | -0.22 | 5 |
+| Mitarbeiter-Stories_interview | +0.92 | 8 |
+| Events & Networking_hackathon | +0.85 | 12 |
+| Wellness & Benefits_sport | +0.72 | 10 |
+| KI & Innovation_chatgpt | +0.48 | 15 |
+| Organisatorische Änderungen_umstrukturierung | -0.28 | 5 |
 
 **Interpretation:**
-- Workshop-Ankündigungen funktionieren hervorragend
-- Recruiting-News kommen gut an
-- Software-Updates könnten verständlicher sein
-- Restructuring-News erzeugen negative Reaktionen
+- Mitarbeiter-Interviews funktionieren hervorragend
+- Hackathon-Ankündigungen kommen sehr gut an
+- Sport- & Wellness-Events werden positiv aufgenommen
+- ChatGPT/KI-Themen erzeugen gemischte Reaktionen
+- Umstrukturierungs-News erzeugen negative Reaktionen
 
 ### Sheet "Artikel" - Alle Artikel im Detail
 
@@ -119,20 +129,36 @@ Basierend auf den Ergebnissen kannst du:
 3. **Spezifische Themen identifizieren** die gut/schlecht ankommen
 4. **Content-Strategie anpassen**
 
-## ⚙️ Eigene Kategorien hinzufügen
+## ⚙️ Eigene Content-Themen hinzufügen
 
-Bearbeite `config/settings.py`:
+Bearbeite [config/settings.py](config/settings.py):
 
 ```python
 CATEGORY_KEYWORDS = {
-    'HR': ['mitarbeiter', 'personal', 'recruiting', ...],
-    'IT': ['software', 'hardware', 'system', ...],
+    # Bestehende Content-Themen
+    'KI & Innovation': ['künstliche intelligenz', 'ki', 'ai', ...],
+    'Mitarbeiter-Stories': ['mitarbeiter', 'kollege', 'interview', ...],
+    'Wellness & Benefits': ['gesundheit', 'wellness', 'sport', ...],
 
-    # Füge eigene Kategorie hinzu:
-    'Sustainability': ['nachhaltigkeit', 'umwelt', 'green', 'co2'],
-    'Innovation': ['innovation', 'digital', 'transformation', 'ai'],
+    # Füge eigenes Content-Thema hinzu:
+    'Diversity & Inclusion': [
+        'diversity', 'diversität', 'inklusion', 'vielfalt', 'lgbtq',
+        'frauen', 'gender', 'minorities', 'chancengleichheit'
+    ],
+
+    'Remote Work': [
+        'remote', 'homeoffice', 'hybrid', 'flexible arbeitszeit',
+        'work from home', 'distributed team', 'async'
+    ],
+
+    'Customer Stories': [
+        'kunde', 'customer', 'success story', 'case study',
+        'referenz', 'testimonial', 'anwendungsfall'
+    ],
 }
 ```
+
+**Tipp:** Die Keywords sollten zum **Inhalt/Thema** des Artikels passen, nicht zur Abteilung!
 
 ## 🔧 Performance-Tipps
 

@@ -347,20 +347,26 @@ def main():
     logger.info(f"✓ Sentiment-Analyse abgeschlossen")
     logger.info(f"  Durchschnittliches Sentiment: {articles_df['avg_sentiment'].mean():.3f}")
 
-    # 4. Kategorisiere Artikel
-    logger.info("\n[4/6] Kategorisiere Artikel...")
+    # 4. Kategorisiere Artikel nach INHALTS-THEMEN
+    logger.info("\n[4/6] Kategorisiere Artikel nach Content-Themen...")
     categorizer = ArticleCategorizer()
 
     for idx, row in articles_df.iterrows():
-        text = f"{row.get('title', '')} {row.get('content', '')}"
-        category_result = categorizer.categorize(text)
+        title = row.get('title', '')
+        content = row.get('content', '')
 
-        articles_df.at[idx, 'category'] = category_result['primary_category']
-        articles_df.at[idx, 'keywords'] = category_result.get('keywords', [])
+        # Kategorisiere nach Inhalt
+        category_scores = categorizer.categorize_by_content(title, content)
+        primary_category = categorizer.get_primary_category(category_scores)
+        keywords = categorizer.extract_keywords(title + ' ' + content, top_n=5)
+
+        articles_df.at[idx, 'category'] = primary_category
+        articles_df.at[idx, 'keywords'] = keywords
 
     logger.info(f"✓ Kategorisierung abgeschlossen")
+    logger.info("\nContent-Themen Verteilung:")
     category_counts = articles_df['category'].value_counts()
-    for cat, count in category_counts.head(5).items():
+    for cat, count in category_counts.head(10).items():
         logger.info(f"  - {cat}: {count} Artikel")
 
     # 5. Cluster Artikel
