@@ -160,13 +160,38 @@ class BERTopicSentimentAnalyzer:
 
         # Initialize BERTopic
         logger.info(f"\n[2/4] Initialisiere BERTopic...")
+
+        # Import HDBSCAN for custom parameters
+        from hdbscan import HDBSCAN
+        from umap import UMAP
+
+        # Custom HDBSCAN for small datasets (< 50 documents)
+        hdbscan_model = HDBSCAN(
+            min_cluster_size=2,      # Minimum 2 documents per cluster (default: 10)
+            min_samples=1,            # Minimum samples in neighborhood (default: 5)
+            metric='euclidean',
+            cluster_selection_method='eom',
+            prediction_data=True
+        )
+
+        # Custom UMAP for small datasets
+        umap_model = UMAP(
+            n_neighbors=3,            # Reduced from default 15 for small datasets
+            n_components=5,           # Dimensionality
+            min_dist=0.0,
+            metric='cosine'
+        )
+
         self.topic_model = BERTopic(
             embedding_model=self.embedding_model,
+            hdbscan_model=hdbscan_model,
+            umap_model=umap_model,
             language='multilingual',
             calculate_probabilities=True,
-            verbose=True
+            verbose=True,
+            min_topic_size=2          # Minimum documents per topic (default: 10)
         )
-        logger.info("   ✓ BERTopic bereit")
+        logger.info("   ✓ BERTopic bereit (optimiert für kleine Datensätze)")
 
         # Load sentiment analyzer for comments
         logger.info(f"\n[3/4] Lade Sentiment Analyzer für Kommentare...")
