@@ -332,7 +332,7 @@ class BERTopicSentimentAnalyzer:
 
                     if comment_text:
                         # Analyze sentiment
-                        sentiment_result = self.sentiment_analyzer.analyze_text(comment_text)
+                        sentiment_result = self.sentiment_analyzer.analyze(comment_text)
                         sentiment_category = sentiment_result.get('category', 'unknown')
                         sentiment_score = sentiment_result.get('score', 0.0)
 

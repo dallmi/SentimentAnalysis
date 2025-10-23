@@ -48,4 +48,9 @@ Thumbs.db
 
 # Large offline packages (should be in GitHub Releases only)
 bertopic-offline-packages*.zip
+mbart*.zip
+offline_packages/*.zip
 *.whl
+
+# mBART model (too large for git, distribute via GitHub Releases)
+LLM Solution/models/mbart-large-50/

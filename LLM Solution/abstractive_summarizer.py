@@ -6,7 +6,7 @@ Supports 50+ languages including German, English, French, Italian, Spanish
 """
 
 import torch
-from transformers import MBartForConditionalGeneration, MBart50TokenizerFast
+from transformers import MBartForConditionalGeneration, MBart50Tokenizer
 from pathlib import Path
 import logging
 
@@ -42,7 +42,7 @@ class AbstractiveSummarizer:
         logger.info(f"Loading mBART model from {self.model_path}...")
 
         # Load tokenizer and model
-        self.tokenizer = MBart50TokenizerFast.from_pretrained(str(self.model_path))
+        self.tokenizer = MBart50Tokenizer.from_pretrained(str(self.model_path))
         self.model = MBartForConditionalGeneration.from_pretrained(str(self.model_path))
 
         # Set device (GPU if available)

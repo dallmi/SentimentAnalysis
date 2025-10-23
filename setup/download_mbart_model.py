@@ -8,7 +8,7 @@ Usage:
 
 import os
 from pathlib import Path
-from transformers import MBartForConditionalGeneration, MBart50TokenizerFast
+from transformers import MBartForConditionalGeneration, MBart50Tokenizer
 
 def download_mbart_model():
     """
@@ -38,7 +38,7 @@ def download_mbart_model():
 
     try:
         print("\n[1/2] Downloading tokenizer...")
-        tokenizer = MBart50TokenizerFast.from_pretrained(model_name)
+        tokenizer = MBart50Tokenizer.from_pretrained(model_name)
         tokenizer.save_pretrained(save_dir)
         print("   ✓ Tokenizer downloaded")
 
