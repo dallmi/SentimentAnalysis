@@ -31,11 +31,7 @@ def create_offline_package():
     print("  - hdbscan")
     print("  - All dependencies")
     print("\nEstimated download size: ~500MB")
-
-    response = input("\nContinue? (y/n): ")
-    if response.lower() != 'y':
-        print("Cancelled.")
-        return
+    print("\nStarting download...")
 
     # Create offline packages directory
     offline_dir = Path(__file__).parent / "offline_packages" / "bertopic"
