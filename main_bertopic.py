@@ -371,10 +371,10 @@ class BERTopicSentimentAnalyzer:
         n_topics = len(topic_info) - 1  # Exclude outlier topic (-1)
 
         logger.info(f"   ✓ {n_topics} Topics gefunden in {step_time:.2f}s")
-        logger.info(f"\nTopic Overview:")
+        logger.info(f"\n   📊 Topic Overview (BERTopic Keywords):")
         for idx, row in topic_info.iterrows():
             if row['Topic'] != -1:  # Skip outlier topic
-                logger.info(f"   Topic {row['Topic']}: {row['Count']} Artikel - {row['Name']}")
+                logger.info(f"      Topic {row['Topic']}: {row['Count']} Artikel - {row['Name']}")
 
         # Add topics to dataframe
         articles_df['topic'] = topics
@@ -385,6 +385,7 @@ class BERTopicSentimentAnalyzer:
 
         # Use mBART for better topic labels if available
         if self.use_abstractive and self.abstractive_summarizer:
+            logger.info(f"\n   🔄 Generiere bessere Topic-Labels mit mBART...")
             logger.info(f"   🤖 Generiere prägnante Topic-Labels mit mBART (1-3 Schlagwörter)...")
             step_start = time.time()
             topic_ids = [tid for tid in set(topics) if tid != -1]
@@ -409,6 +410,12 @@ class BERTopicSentimentAnalyzer:
             topic_labels[-1] = "Uncategorized"  # Handle outliers
             step_time = time.time() - step_start
             logger.info(f"   ✓ {len(topic_ids)} Topic-Labels generiert in {step_time:.2f}s ({step_time/len(topic_ids):.2f}s pro Topic)")
+
+            # Show final mBART labels
+            logger.info(f"\n   ✨ Finale Topic-Labels (mBART):")
+            for topic_id in sorted([t for t in topic_labels.keys() if t != -1]):
+                count = len([t for t in topics if t == topic_id])
+                logger.info(f"      Topic {topic_id}: {count} Artikel - {topic_labels[topic_id]}")
         else:
             # Fallback: Use top 3 keywords
             logger.info(f"   Generiere Topic-Labels aus Keywords (Standard)...")
