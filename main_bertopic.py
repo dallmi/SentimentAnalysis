@@ -324,8 +324,8 @@ class BERTopicSentimentAnalyzer:
                 summary = self.abstractive_summarizer.summarize(
                     combined_text,
                     source_lang="de_DE",
-                    max_length=200,  # Erhöht: 200 tokens ≈ 150 Wörter ≈ 800-1000 Zeichen
-                    min_length=50    # Erhöht: Mindestens 50 tokens für bessere Zusammenfassungen
+                    max_length=350,  # 350 tokens ≈ 250 Wörter ≈ 1800-2200 Zeichen
+                    min_length=80    # Mindestens 80 tokens für aussagekräftige Summaries
                 )
                 article_summaries.append(summary)
         else:
