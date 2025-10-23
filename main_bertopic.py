@@ -539,7 +539,11 @@ class BERTopicSentimentAnalyzer:
 
         if output_file is None:
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            output_file = f"sentiment_analysis_bertopic_{timestamp}.xlsx"
+            output_dir = Path(__file__).parent / "data" / "output"
+            output_dir.mkdir(parents=True, exist_ok=True)  # Create if not exists
+            output_file = output_dir / f"sentiment_analysis_bertopic_{timestamp}.xlsx"
+        else:
+            output_file = Path(output_file)
 
         with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
             # Sheet 1: Article Overview with Sentiment Aggregation
