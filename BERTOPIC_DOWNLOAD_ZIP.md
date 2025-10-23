@@ -9,19 +9,26 @@ In vielen Corporate Environments ist `git clone` blockiert. Normales "Download Z
 
 ### Option 1: Direkter ZIP Download von GitHub (Empfohlen)
 
-1. **Gehe zu GitHub Releases:**
-   ```
-   https://github.com/dallmi/SentimentAnalysis/releases
+**Lade die richtige Version für dein Betriebssystem:**
+
+#### Für Windows (Python 3.9+):
+1. **Lade herunter:** `bertopic-offline-packages-WINDOWS.zip` (900 MB)
+2. **Entpacke auf Windows PC**
+3. **Installiere:**
+   ```cmd
+   cd offline_packages\bertopic_windows
+   pip install --no-index --find-links . bertopic sentence-transformers umap-learn hdbscan
    ```
 
-2. **Lade `bertopic-offline-packages.zip` herunter** (783 MB)
+   **Oder doppelklicke:** `install_bertopic_offline_windows.bat`
 
-3. **Entpacke das ZIP auf deinem Corporate PC:**
+#### Für macOS / Linux (Python 3.9+):
+1. **Lade herunter:** `bertopic-offline-packages.zip` (783 MB)
+2. **Entpacke auf deinem Mac/Linux PC:**
    ```bash
    unzip bertopic-offline-packages.zip
    ```
-
-4. **Installiere BERTopic offline:**
+3. **Installiere:**
    ```bash
    cd offline_packages/bertopic
    pip install --no-index --find-links . bertopic sentence-transformers umap-learn hdbscan
