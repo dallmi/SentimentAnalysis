@@ -184,6 +184,7 @@ class BERTopicSentimentAnalyzer:
         # Import HDBSCAN for custom parameters
         from hdbscan import HDBSCAN
         from umap import UMAP
+        from sklearn.feature_extraction.text import CountVectorizer
 
         start_time = time.time()
 
@@ -204,10 +205,29 @@ class BERTopicSentimentAnalyzer:
             metric='cosine'
         )
 
+        # Stopword filtering - wichtig für bessere Topic-Labels!
+        # Englische + Deutsche Stoppwörter filtern
+        stop_words = [
+            # English stopwords
+            'the', 'and', 'to', 'of', 'in', 'a', 'is', 'for', 'with', 'on', 'as', 'at',
+            'by', 'an', 'be', 'this', 'that', 'from', 'or', 'are', 'was', 'has', 'have',
+            # German stopwords
+            'der', 'die', 'das', 'den', 'dem', 'des', 'und', 'in', 'zu', 'den', 'ist',
+            'für', 'von', 'mit', 'auf', 'ein', 'eine', 'einem', 'als', 'auch', 'werden',
+            'wird', 'sind', 'war', 'hat', 'haben', 'oder', 'nicht', 'im', 'am', 'zum'
+        ]
+
+        vectorizer_model = CountVectorizer(
+            stop_words=stop_words,
+            ngram_range=(1, 2),  # Unigrams und Bigrams
+            min_df=1
+        )
+
         self.topic_model = BERTopic(
             embedding_model=self.embedding_model,
             hdbscan_model=hdbscan_model,
             umap_model=umap_model,
+            vectorizer_model=vectorizer_model,  # Mit Stoppwort-Filterung!
             language='multilingual',
             calculate_probabilities=True,
             verbose=True,
