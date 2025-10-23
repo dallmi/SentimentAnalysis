@@ -38,6 +38,13 @@ except ImportError:
     print("⚠️  Sentiment Analyzer nicht verfügbar")
     SENTIMENT_AVAILABLE = False
 
+# Try to import abstractive summarizer
+try:
+    from abstractive_summarizer import AbstractiveSummarizer
+    ABSTRACTIVE_AVAILABLE = True
+except ImportError:
+    ABSTRACTIVE_AVAILABLE = False
+
 # Logging configuration
 logging.basicConfig(
     level=logging.INFO,
@@ -124,12 +131,13 @@ class BERTopicSentimentAnalyzer:
     Complete sentiment analysis pipeline with BERTopic for content clustering
     """
 
-    def __init__(self, model_path: str = None):
+    def __init__(self, model_path: str = None, use_abstractive: bool = False):
         """
         Initialize analyzer
 
         Args:
             model_path: Path to multilingual sentence transformer model
+            use_abstractive: Use abstractive summarization (requires mBART model)
         """
         logger.info("\n" + "=" * 70)
         logger.info("BERTopic Sentiment Analyzer - Initialisierung")
@@ -145,13 +153,13 @@ class BERTopicSentimentAnalyzer:
             logger.info("   Versuche Online-Download...")
             model_path = "paraphrase-multilingual-MiniLM-L12-v2"
 
-        logger.info(f"\n[1/3] Lade Embedding Model...")
+        logger.info(f"\n[1/4] Lade Embedding Model...")
         logger.info(f"   Path: {model_path}")
         self.embedding_model = SentenceTransformer(model_path)
         logger.info("   ✓ Embedding Model geladen (50+ Sprachen unterstützt)")
 
         # Initialize BERTopic
-        logger.info(f"\n[2/3] Initialisiere BERTopic...")
+        logger.info(f"\n[2/4] Initialisiere BERTopic...")
         self.topic_model = BERTopic(
             embedding_model=self.embedding_model,
             language='multilingual',
@@ -161,13 +169,35 @@ class BERTopicSentimentAnalyzer:
         logger.info("   ✓ BERTopic bereit")
 
         # Load sentiment analyzer for comments
-        logger.info(f"\n[3/3] Lade Sentiment Analyzer für Kommentare...")
+        logger.info(f"\n[3/4] Lade Sentiment Analyzer für Kommentare...")
         if SENTIMENT_AVAILABLE:
             self.sentiment_analyzer = OfflineSentimentAnalyzer()
             logger.info(f"   ✓ Sentiment Analyzer geladen (Mode: {self.sentiment_analyzer.mode})")
         else:
             self.sentiment_analyzer = None
             logger.warning("   ⚠️  Sentiment Analyzer nicht verfügbar")
+
+        # Load abstractive summarizer (optional)
+        logger.info(f"\n[4/4] Lade Abstractive Summarizer...")
+        self.use_abstractive = use_abstractive
+        self.abstractive_summarizer = None
+
+        if use_abstractive:
+            if ABSTRACTIVE_AVAILABLE:
+                try:
+                    self.abstractive_summarizer = AbstractiveSummarizer()
+                    logger.info("   ✓ Abstractive Summarizer geladen (mBART-large-50)")
+                except Exception as e:
+                    logger.warning(f"   ⚠️  Abstractive Summarizer konnte nicht geladen werden: {e}")
+                    logger.info("   → Verwende stattdessen Extractive Summarization")
+                    self.use_abstractive = False
+            else:
+                logger.warning("   ⚠️  Abstractive Summarizer nicht verfügbar")
+                logger.info("   → Download mit: python setup/download_mbart_model.py")
+                logger.info("   → Verwende stattdessen Extractive Summarization")
+                self.use_abstractive = False
+        else:
+            logger.info("   → Verwende Extractive Summarization (Standard)")
 
         logger.info("\n" + "=" * 70)
         logger.info("Initialisierung abgeschlossen!")
@@ -210,11 +240,23 @@ class BERTopicSentimentAnalyzer:
         logger.info(f"   ✓ {len(article_texts)} Texte vorbereitet")
 
         # Generate summaries for each article
-        logger.info(f"   Generiere Zusammenfassungen...")
-        article_summaries = []
-        for combined_text in article_texts:
-            summary = extractive_summarize(combined_text, self.embedding_model, num_sentences=3)
-            article_summaries.append(summary)
+        if self.use_abstractive and self.abstractive_summarizer:
+            logger.info(f"   Generiere ABSTRACTIVE Zusammenfassungen (mBART)...")
+            article_summaries = []
+            for combined_text in article_texts:
+                summary = self.abstractive_summarizer.summarize(
+                    combined_text,
+                    source_lang="de_DE",
+                    max_length=100,
+                    min_length=30
+                )
+                article_summaries.append(summary)
+        else:
+            logger.info(f"   Generiere EXTRACTIVE Zusammenfassungen...")
+            article_summaries = []
+            for combined_text in article_texts:
+                summary = extractive_summarize(combined_text, self.embedding_model, num_sentences=3)
+                article_summaries.append(summary)
 
         articles_df['summary'] = article_summaries
         logger.info(f"   ✓ {len(article_summaries)} Zusammenfassungen erstellt")
@@ -459,6 +501,11 @@ def main():
         default=None,
         help='Path to multilingual sentence transformer model (optional)'
     )
+    parser.add_argument(
+        '--abstractive',
+        action='store_true',
+        help='Use abstractive summarization (requires mBART model)'
+    )
 
     args = parser.parse_args()
 
@@ -475,7 +522,10 @@ def main():
         sys.exit(1)
 
     # Run analysis
-    analyzer = BERTopicSentimentAnalyzer(model_path=args.model_path)
+    analyzer = BERTopicSentimentAnalyzer(
+        model_path=args.model_path,
+        use_abstractive=args.abstractive
+    )
     analyzer.analyze(args.input, args.output)
 
 
