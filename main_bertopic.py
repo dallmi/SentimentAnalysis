@@ -155,7 +155,7 @@ class BERTopicSentimentAnalyzer:
 
         logger.info(f"\n[1/4] Lade Embedding Model...")
         logger.info(f"   Path: {model_path}")
-        self.embedding_model = SentenceTransformer(model_path)
+        self.embedding_model = SentenceTransformer(str(model_path))
         logger.info("   ✓ Embedding Model geladen (50+ Sprachen unterstützt)")
 
         # Initialize BERTopic
