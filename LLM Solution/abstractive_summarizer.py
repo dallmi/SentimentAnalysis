@@ -135,6 +135,86 @@ class AbstractiveSummarizer:
             summaries.append(summary)
         return summaries
 
+    def generate_topic_label(
+        self,
+        keywords: list,
+        representative_docs: list,
+        source_lang: str = "de_DE",
+        max_keywords: int = 3
+    ) -> str:
+        """
+        Generate concise topic label (1-3 keywords) from topic keywords and documents.
+
+        Args:
+            keywords: List of (word, score) tuples from BERTopic
+            representative_docs: List of representative documents for this topic
+            source_lang: Source language code
+            max_keywords: Maximum number of keywords to return (1-3)
+
+        Returns:
+            Concise topic label (e.g., "Homeoffice", "KI & Automatisierung", "Nachhaltigkeit")
+        """
+        if not keywords and not representative_docs:
+            return "Sonstiges"
+
+        # Create context from keywords and representative docs
+        top_keywords = [word for word, _ in keywords[:10]]
+        keyword_text = ", ".join(top_keywords)
+
+        # Sample representative documents (max 3 for context)
+        doc_samples = representative_docs[:3] if representative_docs else []
+        doc_text = " ".join(doc_samples[:200])  # Limit to first 200 chars per doc
+
+        # Create prompt for mBART
+        prompt = f"""Thema-Keywords: {keyword_text}
+
+Beispiel-Texte: {doc_text}
+
+Aufgabe: Erstelle ein prägnantes Thema-Label mit maximal {max_keywords} Schlagwörtern (keine vollständigen Sätze).
+Format: Einzelwort (z.B. "Homeoffice") oder 2-3 Wörter mit & (z.B. "KI & Automatisierung" oder "Work-Life-Balance").
+Antwort:"""
+
+        # Generate with mBART (shorter output for keywords)
+        inputs = self.tokenizer(
+            prompt,
+            max_length=512,
+            truncation=True,
+            return_tensors="pt"
+        )
+        inputs = inputs.to(self.device)
+
+        self.tokenizer.src_lang = source_lang
+
+        # Generate short label (max 20 tokens for 1-3 keywords)
+        label_ids = self.model.generate(
+            inputs["input_ids"],
+            max_length=20,
+            min_length=2,
+            num_beams=3,
+            length_penalty=0.5,  # Favor shorter outputs
+            early_stopping=True,
+            forced_bos_token_id=self.tokenizer.lang_code_to_id[source_lang],
+            no_repeat_ngram_size=2
+        )
+
+        # Decode label
+        label = self.tokenizer.decode(
+            label_ids[0],
+            skip_special_tokens=True,
+            clean_up_tokenization_spaces=True
+        )
+
+        # Clean up: Remove punctuation at the end, capitalize
+        label = label.strip().rstrip('.,!?;:')
+
+        # Fallback: If mBART generates too long or empty, use top keywords
+        if not label or len(label.split()) > max_keywords + 1:
+            # Use top keywords as fallback
+            top_words = [word.capitalize() for word, _ in keywords[:max_keywords]]
+            label = " & ".join(top_words) if top_words else "Sonstiges"
+
+        return label
+
 
 # Language code mapping for common languages
 LANGUAGE_CODES = {

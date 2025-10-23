@@ -16,6 +16,18 @@ from datetime import datetime
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 import re
+import time
+from typing import Dict, Any
+
+# Try to import tqdm for progress bars
+try:
+    from tqdm import tqdm
+    TQDM_AVAILABLE = True
+except ImportError:
+    TQDM_AVAILABLE = False
+    # Fallback: simple counter
+    def tqdm(iterable, desc=None, **kwargs):
+        return iterable
 
 # Add LLM Solution to path
 sys.path.insert(0, str(Path(__file__).parent / "LLM Solution"))
@@ -153,17 +165,27 @@ class BERTopicSentimentAnalyzer:
             logger.info("   Versuche Online-Download...")
             model_path = "paraphrase-multilingual-MiniLM-L12-v2"
 
-        logger.info(f"\n[1/4] Lade Embedding Model...")
-        logger.info(f"   Path: {model_path}")
+        logger.info(f"\n[1/4] Lade Embedding Model für Article Clustering...")
+        logger.info(f"   📦 Model: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+        logger.info(f"   🎯 Verwendung: Semantische Embeddings für BERTopic Clustering")
+        logger.info(f"   🌍 Sprachen: 50+ (multilingual)")
+        logger.info(f"   📍 Path: {model_path}")
+        start_time = time.time()
         self.embedding_model = SentenceTransformer(str(model_path))
-        logger.info("   ✓ Embedding Model geladen (50+ Sprachen unterstützt)")
+        load_time = time.time() - start_time
+        logger.info(f"   ✓ Geladen in {load_time:.2f}s")
 
         # Initialize BERTopic
-        logger.info(f"\n[2/4] Initialisiere BERTopic...")
+        logger.info(f"\n[2/4] Initialisiere BERTopic Clustering Pipeline...")
+        logger.info(f"   📦 Framework: BERTopic (HDBSCAN + UMAP)")
+        logger.info(f"   🎯 Verwendung: Gruppiert Artikel in thematische Cluster")
+        logger.info(f"   ⚙️  Config: min_cluster_size=2, n_neighbors=3, n_components=5")
 
         # Import HDBSCAN for custom parameters
         from hdbscan import HDBSCAN
         from umap import UMAP
+
+        start_time = time.time()
 
         # Custom HDBSCAN for small datasets (< 50 documents)
         hdbscan_model = HDBSCAN(
@@ -191,13 +213,28 @@ class BERTopicSentimentAnalyzer:
             verbose=True,
             min_topic_size=2          # Minimum documents per topic (default: 10)
         )
-        logger.info("   ✓ BERTopic bereit (optimiert für kleine Datensätze)")
+
+        load_time = time.time() - start_time
+        logger.info(f"   ✓ Initialisiert in {load_time:.2f}s")
 
         # Load sentiment analyzer for comments
         logger.info(f"\n[3/4] Lade Sentiment Analyzer für Kommentare...")
         if SENTIMENT_AVAILABLE:
+            start_time = time.time()
             self.sentiment_analyzer = OfflineSentimentAnalyzer()
-            logger.info(f"   ✓ Sentiment Analyzer geladen (Mode: {self.sentiment_analyzer.mode})")
+            load_time = time.time() - start_time
+
+            # Get detailed model info
+            if hasattr(self.sentiment_analyzer, 'model') and self.sentiment_analyzer.model:
+                model_name = "nlptown/bert-base-multilingual-uncased-sentiment"
+                logger.info(f"   📦 Model: {model_name}")
+                logger.info(f"   🎯 Verwendung: Sentiment-Analyse von Kommentaren (Positiv/Neutral/Negativ)")
+                logger.info(f"   🌍 Sprachen: en, de, fr, it, es, nl")
+                logger.info(f"   ⚙️  Output: 5-star rating → 3 Kategorien")
+            else:
+                logger.info(f"   📦 Mode: Lexikon-basiert (Fallback)")
+
+            logger.info(f"   ✓ Geladen in {load_time:.2f}s")
         else:
             self.sentiment_analyzer = None
             logger.warning("   ⚠️  Sentiment Analyzer nicht verfügbar")
@@ -210,10 +247,16 @@ class BERTopicSentimentAnalyzer:
         if use_abstractive:
             if ABSTRACTIVE_AVAILABLE:
                 try:
+                    start_time = time.time()
                     self.abstractive_summarizer = AbstractiveSummarizer()
-                    logger.info("   ✓ Abstractive Summarizer geladen (mBART-large-50)")
+                    load_time = time.time() - start_time
+                    logger.info(f"   📦 Model: facebook/mBART-large-50-many-to-many-mmt")
+                    logger.info(f"   🎯 Verwendung: Generiert Article Summaries + Topic Labels")
+                    logger.info(f"   🌍 Sprachen: 50+ (inkl. de_DE, en_XX)")
+                    logger.info(f"   ⚙️  Params: ~611M, Beam Search (num_beams=4)")
+                    logger.info(f"   ✓ Geladen in {load_time:.2f}s")
                 except Exception as e:
-                    logger.warning(f"   ⚠️  Abstractive Summarizer konnte nicht geladen werden: {e}")
+                    logger.warning(f"   ⚠️  Konnte nicht geladen werden: {e}")
                     logger.info("   → Verwende stattdessen Extractive Summarization")
                     self.use_abstractive = False
             else:
@@ -222,7 +265,9 @@ class BERTopicSentimentAnalyzer:
                 logger.info("   → Verwende stattdessen Extractive Summarization")
                 self.use_abstractive = False
         else:
-            logger.info("   → Verwende Extractive Summarization (Standard)")
+            logger.info("   📦 Mode: Extractive (Standard)")
+            logger.info("   🎯 Verwendung: Extrahiert 3 beste Sätze aus Artikeln")
+            logger.info("   ⚙️  Methode: Cosine Similarity mit Sentence Embeddings")
 
         logger.info("\n" + "=" * 70)
         logger.info("Initialisierung abgeschlossen!")
@@ -240,12 +285,16 @@ class BERTopicSentimentAnalyzer:
         logger.info("START: Sentiment Analysis mit BERTopic")
         logger.info("=" * 70)
 
+        # Track overall time
+        analysis_start_time = time.time()
+
         # Step 1: Load data
         logger.info(f"\n[STEP 1/5] Lade Daten aus {json_file}...")
+        step_start = time.time()
         with open(json_file, 'r', encoding='utf-8') as f:
             articles_data = json.load(f)
-
-        logger.info(f"   ✓ {len(articles_data)} Artikel geladen")
+        step_time = time.time() - step_start
+        logger.info(f"   ✓ {len(articles_data)} Artikel geladen in {step_time:.2f}s")
 
         # Prepare data
         articles_df = pd.DataFrame(articles_data)
@@ -308,17 +357,43 @@ class BERTopicSentimentAnalyzer:
 
         # Get topic labels
         topic_labels = {}
-        for topic_id in set(topics):
-            if topic_id != -1:
-                topic_words = self.topic_model.get_topic(topic_id)
-                if topic_words:
-                    # Get top 3 words
-                    top_words = [word for word, _ in topic_words[:3]]
-                    topic_labels[topic_id] = " & ".join(top_words).capitalize()
+
+        # Use mBART for better topic labels if available
+        if self.use_abstractive and self.abstractive_summarizer:
+            logger.info(f"   Generiere prägnante Topic-Labels mit mBART (1-3 Schlagwörter)...")
+            for topic_id in set(topics):
+                if topic_id != -1:
+                    # Get topic keywords and representative documents
+                    topic_words = self.topic_model.get_topic(topic_id)
+                    representative_docs = [article_texts[i] for i, t in enumerate(topics) if t == topic_id][:3]
+
+                    if topic_words:
+                        # Generate concise label with mBART
+                        label = self.abstractive_summarizer.generate_topic_label(
+                            keywords=topic_words,
+                            representative_docs=representative_docs,
+                            source_lang="de_DE",
+                            max_keywords=3
+                        )
+                        topic_labels[topic_id] = label
+                    else:
+                        topic_labels[topic_id] = f"Topic {topic_id}"
                 else:
-                    topic_labels[topic_id] = f"Topic {topic_id}"
-            else:
-                topic_labels[topic_id] = "Uncategorized"
+                    topic_labels[topic_id] = "Uncategorized"
+        else:
+            # Fallback: Use top 3 keywords
+            logger.info(f"   Generiere Topic-Labels aus Keywords (Standard)...")
+            for topic_id in set(topics):
+                if topic_id != -1:
+                    topic_words = self.topic_model.get_topic(topic_id)
+                    if topic_words:
+                        # Get top 3 words
+                        top_words = [word for word, _ in topic_words[:3]]
+                        topic_labels[topic_id] = " & ".join(top_words).capitalize()
+                    else:
+                        topic_labels[topic_id] = f"Topic {topic_id}"
+                else:
+                    topic_labels[topic_id] = "Uncategorized"
 
         articles_df['topic_label'] = articles_df['topic'].map(topic_labels)
 
