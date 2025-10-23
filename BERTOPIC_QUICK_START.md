@@ -27,8 +27,6 @@ python setup_bertopic_offline.py
 ### Transfer to Corporate Environment:
 
 Transfer the entire `SentimentAnalysis` folder via:
-- USB stick
-- Corporate file share
 - Approved transfer method
 
 ### In Corporate Environment:
