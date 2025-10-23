@@ -57,11 +57,19 @@ try:
 except ImportError:
     ABSTRACTIVE_AVAILABLE = False
 
-# Logging configuration
+# Logging configuration with file output
+log_dir = Path(__file__).parent / "logs"
+log_dir.mkdir(exist_ok=True)
+timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+log_file = log_dir / f"analysis_{timestamp}.log"
+
 logging.basicConfig(
     level=logging.INFO,
-    format='%(message)s',
-    handlers=[logging.StreamHandler(sys.stdout)]
+    handlers=[
+        logging.FileHandler(log_file, encoding='utf-8'),  # File handler
+        logging.StreamHandler(sys.stdout)  # Console handler
+    ],
+    format='%(message)s'
 )
 logger = logging.getLogger(__name__)
 
@@ -432,6 +440,12 @@ class BERTopicSentimentAnalyzer:
                     topic_labels[topic_id] = "Uncategorized"
 
         articles_df['topic_label'] = articles_df['topic'].map(topic_labels)
+
+        # DEBUG: Log topic_labels dictionary
+        logger.info(f"\n   🔍 DEBUG: topic_labels Dictionary:")
+        for topic_id, label in sorted(topic_labels.items()):
+            if topic_id != -1:
+                logger.info(f"      {topic_id} → '{label}'")
 
         # Step 4: Analyze comment sentiment
         logger.info(f"\n[STEP 4/5] Analysiere Kommentar-Sentiment...")
