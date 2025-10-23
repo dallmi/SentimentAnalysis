@@ -12,8 +12,6 @@
 ### Step 1: Transfer Files
 
 Transfer this entire folder to your corporate environment:
-- Via USB stick
-- Via corporate file share
 - Via approved file transfer method
 
 ### Step 2: Install Packages
