@@ -1,0 +1,29 @@
+[
+  {
+    "url": "https://example.com/article1",
+    "title": "Wealth Management and Private Banking Services",
+    "content": "Our wealth management division focuses on high-net-worth clients and provides comprehensive private banking services. Portfolio management and investment advisory are key offerings. We help clients preserve and grow their wealth through tailored financial solutions.",
+    "comments": [
+      {"text": "Excellent service and professional advice", "author": "John Smith", "date": "2025-01-15"},
+      {"text": "Very satisfied with the portfolio performance", "author": "Sarah Johnson", "date": "2025-01-16"}
+    ]
+  },
+  {
+    "url": "https://example.com/article2",
+    "title": "Client Referral Program Generates Record Revenue",
+    "content": "Our client referral program has generated USD 923 million in net new money this quarter. Strong client relationships and trust are the foundation of our business growth. Referrals from satisfied clients continue to drive our expansion.",
+    "comments": [
+      {"text": "Impressive growth numbers", "author": "Michael Chen", "date": "2025-01-17"},
+      {"text": "Great to see the referral program working", "author": "Emma Wilson", "date": "2025-01-18"}
+    ]
+  },
+  {
+    "url": "https://example.com/article3",
+    "title": "Digital Banking Transformation and Mobile Innovation",
+    "content": "Digital transformation is reshaping the banking sector. Our new mobile banking app features enhanced security and intuitive user experience. Retail banking customers can now manage accounts, transfer funds, and access investment tools on the go.",
+    "comments": [
+      {"text": "Love the new mobile app interface", "author": "David Lee", "date": "2025-01-19"},
+      {"text": "Much easier to use than the old system", "author": "Lisa Brown", "date": "2025-01-20"}
+    ]
+  }
+]
