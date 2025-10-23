@@ -314,10 +314,13 @@ class BERTopicSentimentAnalyzer:
         logger.info(f"   ✓ {len(article_texts)} Texte vorbereitet")
 
         # Generate summaries for each article
+        logger.info(f"   📝 Generiere Artikel-Zusammenfassungen...")
+        step_start = time.time()
+        article_summaries = []
+
         if self.use_abstractive and self.abstractive_summarizer:
-            logger.info(f"   Generiere ABSTRACTIVE Zusammenfassungen (mBART)...")
-            article_summaries = []
-            for combined_text in article_texts:
+            logger.info(f"   🤖 Mode: ABSTRACTIVE (mBART) - ~2-5s pro Artikel")
+            for combined_text in tqdm(article_texts, desc="      Summaries", disable=not TQDM_AVAILABLE):
                 summary = self.abstractive_summarizer.summarize(
                     combined_text,
                     source_lang="de_DE",
@@ -326,26 +329,28 @@ class BERTopicSentimentAnalyzer:
                 )
                 article_summaries.append(summary)
         else:
-            logger.info(f"   Generiere EXTRACTIVE Zusammenfassungen...")
-            article_summaries = []
-            for combined_text in article_texts:
+            logger.info(f"   ⚡ Mode: EXTRACTIVE (3 beste Sätze) - ~0.1s pro Artikel")
+            for combined_text in tqdm(article_texts, desc="      Summaries", disable=not TQDM_AVAILABLE):
                 summary = extractive_summarize(combined_text, self.embedding_model, num_sentences=3)
                 article_summaries.append(summary)
 
         articles_df['summary'] = article_summaries
-        logger.info(f"   ✓ {len(article_summaries)} Zusammenfassungen erstellt")
+        step_time = time.time() - step_start
+        logger.info(f"   ✓ {len(article_summaries)} Zusammenfassungen erstellt in {step_time:.2f}s ({step_time/len(article_summaries):.2f}s pro Artikel)")
 
         # Step 3: Cluster articles with BERTopic
         logger.info(f"\n[STEP 3/5] Clustere Artikel mit BERTopic...")
-        logger.info("   (Dies kann einige Minuten dauern...)")
+        logger.info(f"   🔄 Embedding → UMAP → HDBSCAN Clustering...")
+        step_start = time.time()
 
         topics, probabilities = self.topic_model.fit_transform(article_texts)
 
+        step_time = time.time() - step_start
         # Get topic info
         topic_info = self.topic_model.get_topic_info()
         n_topics = len(topic_info) - 1  # Exclude outlier topic (-1)
 
-        logger.info(f"   ✓ {n_topics} Topics gefunden")
+        logger.info(f"   ✓ {n_topics} Topics gefunden in {step_time:.2f}s")
         logger.info(f"\nTopic Overview:")
         for idx, row in topic_info.iterrows():
             if row['Topic'] != -1:  # Skip outlier topic
@@ -360,26 +365,30 @@ class BERTopicSentimentAnalyzer:
 
         # Use mBART for better topic labels if available
         if self.use_abstractive and self.abstractive_summarizer:
-            logger.info(f"   Generiere prägnante Topic-Labels mit mBART (1-3 Schlagwörter)...")
-            for topic_id in set(topics):
-                if topic_id != -1:
-                    # Get topic keywords and representative documents
-                    topic_words = self.topic_model.get_topic(topic_id)
-                    representative_docs = [article_texts[i] for i, t in enumerate(topics) if t == topic_id][:3]
+            logger.info(f"   🤖 Generiere prägnante Topic-Labels mit mBART (1-3 Schlagwörter)...")
+            step_start = time.time()
+            topic_ids = [tid for tid in set(topics) if tid != -1]
 
-                    if topic_words:
-                        # Generate concise label with mBART
-                        label = self.abstractive_summarizer.generate_topic_label(
-                            keywords=topic_words,
-                            representative_docs=representative_docs,
-                            source_lang="de_DE",
-                            max_keywords=3
-                        )
-                        topic_labels[topic_id] = label
-                    else:
-                        topic_labels[topic_id] = f"Topic {topic_id}"
+            for topic_id in tqdm(topic_ids, desc="      Topic Labels", disable=not TQDM_AVAILABLE):
+                # Get topic keywords and representative documents
+                topic_words = self.topic_model.get_topic(topic_id)
+                representative_docs = [article_texts[i] for i, t in enumerate(topics) if t == topic_id][:3]
+
+                if topic_words:
+                    # Generate concise label with mBART
+                    label = self.abstractive_summarizer.generate_topic_label(
+                        keywords=topic_words,
+                        representative_docs=representative_docs,
+                        source_lang="de_DE",
+                        max_keywords=3
+                    )
+                    topic_labels[topic_id] = label
                 else:
-                    topic_labels[topic_id] = "Uncategorized"
+                    topic_labels[topic_id] = f"Topic {topic_id}"
+
+            topic_labels[-1] = "Uncategorized"  # Handle outliers
+            step_time = time.time() - step_start
+            logger.info(f"   ✓ {len(topic_ids)} Topic-Labels generiert in {step_time:.2f}s ({step_time/len(topic_ids):.2f}s pro Topic)")
         else:
             # Fallback: Use top 3 keywords
             logger.info(f"   Generiere Topic-Labels aus Keywords (Standard)...")
@@ -405,10 +414,11 @@ class BERTopicSentimentAnalyzer:
         article_sentiments = {}  # Aggregate sentiment per article
 
         total_comments = sum(len(article.get('comments', [])) for article in articles_data)
-        logger.info(f"   Analysiere {total_comments} Kommentare...")
+        logger.info(f"   💭 {total_comments} Kommentare mit BERT Multilingual Model...")
+        step_start = time.time()
 
         if self.sentiment_analyzer:
-            for idx, article in enumerate(articles_data):
+            for idx, article in tqdm(enumerate(articles_data), total=len(articles_data), desc="      Comments", disable=not TQDM_AVAILABLE):
                 url = article.get('url', '')
                 title = article.get('title', '')
                 comments = article.get('comments', [])
@@ -465,7 +475,8 @@ class BERTopicSentimentAnalyzer:
                             'Date': date
                         })
 
-            logger.info(f"   ✓ Sentiment-Analyse abgeschlossen")
+            step_time = time.time() - step_start
+            logger.info(f"   ✓ Sentiment-Analyse abgeschlossen in {step_time:.2f}s ({step_time/total_comments:.3f}s pro Kommentar)")
         else:
             logger.warning("   ⚠️  Sentiment-Analyse übersprungen (Analyzer nicht verfügbar)")
             # Create details without sentiment
