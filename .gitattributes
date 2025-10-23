@@ -1,3 +1,6 @@
 *.safetensors filter=lfs diff=lfs merge=lfs -text
 *.bin filter=lfs diff=lfs merge=lfs -text
 LLM[[:space:]]Solution/wheels/*.whl filter=lfs diff=lfs merge=lfs -text
+offline_packages/**/*.whl filter=lfs diff=lfs merge=lfs -text
+offline_packages/**/pytorch_model.bin filter=lfs diff=lfs merge=lfs -text
+offline_packages/**/model.safetensors filter=lfs diff=lfs merge=lfs -text
