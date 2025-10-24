@@ -66,12 +66,18 @@ log_file = log_dir / f"analysis_{timestamp}.log"
 logging.basicConfig(
     level=logging.INFO,
     handlers=[
-        logging.FileHandler(log_file, encoding='utf-8'),  # File handler
+        logging.FileHandler(log_file, encoding='utf-8', mode='w'),  # File handler with write mode
         logging.StreamHandler(sys.stdout)  # Console handler
     ],
-    format='%(message)s'
+    format='%(message)s',
+    force=True  # Force reconfiguration if already configured
 )
 logger = logging.getLogger(__name__)
+
+# Immediately log to file to test logging works
+logger.info("=" * 70)
+logger.info(f"LOGGING INITIALIZED - File: {log_file}")
+logger.info("=" * 70)
 
 
 def get_sentiment_rating(score: float) -> str:
@@ -297,6 +303,22 @@ class BERTopicSentimentAnalyzer:
             logger.info("   🎯 Verwendung: Extrahiert 3 beste Sätze aus Artikeln")
             logger.info("   ⚙️  Methode: Cosine Similarity mit Sentence Embeddings")
 
+        # CRITICAL DEBUG: Print to console (logging might be broken)
+        print("\n" + "=" * 70)
+        print("🔍 CRITICAL DEBUG AFTER INITIALIZATION:")
+        print(f"   self.use_abstractive = {self.use_abstractive}")
+        print(f"   self.abstractive_summarizer = {self.abstractive_summarizer}")
+        print(f"   Type: {type(self.abstractive_summarizer)}")
+        if self.use_abstractive and self.abstractive_summarizer:
+            print(f"\n   ✅ mBART GELADEN - Verwendung:")
+            print(f"      - Article Summaries: ENTFERNT (nicht benötigt)")
+            print(f"      - Topic Labels: JA (bessere Labels als BERTopic Keywords)")
+        else:
+            print(f"\n   ⚠️  mBART NICHT GELADEN - Verwendung:")
+            print(f"      - Article Summaries: ENTFERNT (nicht benötigt)")
+            print(f"      - Topic Labels: BERTopic Keywords (z.B. 'Kudos & It & Ubs')")
+        print("=" * 70 + "\n")
+
         logger.info("\n" + "=" * 70)
         logger.info("Initialisierung abgeschlossen!")
         logger.info("=" * 70 + "\n")
@@ -331,6 +353,7 @@ class BERTopicSentimentAnalyzer:
         logger.info(f"\n[STEP 2/5] Bereite Artikel-Texte vor...")
         article_texts = []
         article_ids = []
+        article_lengths = []
 
         for idx, article in enumerate(articles_data):
             title = article.get('title', '')
@@ -338,33 +361,23 @@ class BERTopicSentimentAnalyzer:
             combined_text = f"{title}. {content}"
             article_texts.append(combined_text)
             article_ids.append(idx)
+            article_lengths.append(len(combined_text))
 
+        # Show article length statistics
+        avg_length = sum(article_lengths) / len(article_lengths)
+        max_length = max(article_lengths)
+        min_length = min(article_lengths)
         logger.info(f"   ✓ {len(article_texts)} Texte vorbereitet")
+        logger.info(f"   📏 Artikel-Länge: Avg={avg_length:.0f} Zeichen, Min={min_length}, Max={max_length}")
+        print(f"\n📊 ARTIKEL-LÄNGEN STATISTIK:")
+        print(f"   Durchschnitt: {avg_length:.0f} Zeichen ({avg_length/4:.0f} Wörter)")
+        print(f"   Kürzester: {min_length} Zeichen")
+        print(f"   Längster: {max_length} Zeichen")
+        print(f"   → BERTopic verwendet den KOMPLETTEN Text für Clustering!")
 
-        # Generate summaries for each article
-        logger.info(f"   📝 Generiere Artikel-Zusammenfassungen...")
-        step_start = time.time()
-        article_summaries = []
-
-        if self.use_abstractive and self.abstractive_summarizer:
-            logger.info(f"   🤖 Mode: ABSTRACTIVE (mBART) - ~2-5s pro Artikel")
-            for combined_text in tqdm(article_texts, desc="      Summaries", disable=not TQDM_AVAILABLE):
-                summary = self.abstractive_summarizer.summarize(
-                    combined_text,
-                    source_lang="de_DE",
-                    max_length=350,  # 350 tokens ≈ 250 Wörter ≈ 1800-2200 Zeichen
-                    min_length=80    # Mindestens 80 tokens für aussagekräftige Summaries
-                )
-                article_summaries.append(summary)
-        else:
-            logger.info(f"   ⚡ Mode: EXTRACTIVE (3 beste Sätze) - ~0.1s pro Artikel")
-            for combined_text in tqdm(article_texts, desc="      Summaries", disable=not TQDM_AVAILABLE):
-                summary = extractive_summarize(combined_text, self.embedding_model, num_sentences=3)
-                article_summaries.append(summary)
-
-        articles_df['summary'] = article_summaries
-        step_time = time.time() - step_start
-        logger.info(f"   ✓ {len(article_summaries)} Zusammenfassungen erstellt in {step_time:.2f}s ({step_time/len(article_summaries):.2f}s pro Artikel)")
+        # SKIP SUMMARY GENERATION completely - not needed
+        logger.info(f"\n   ⚡ SKIP: Summary-Spalte komplett entfernt (nicht benötigt)")
+        logger.info(f"   → Excel enthält: Title, URL, Topic, Comments")
 
         # Step 3: Cluster articles with BERTopic
         logger.info(f"\n[STEP 3/5] Clustere Artikel mit BERTopic...")
@@ -391,6 +404,14 @@ class BERTopicSentimentAnalyzer:
         # Get topic labels
         topic_labels = {}
 
+        # CRITICAL DEBUG: Check before topic label generation
+        print("\n" + "=" * 70)
+        print("🔍 DEBUG BEFORE TOPIC LABEL GENERATION:")
+        print(f"   self.use_abstractive = {self.use_abstractive}")
+        print(f"   self.abstractive_summarizer = {self.abstractive_summarizer}")
+        print(f"   Condition result: {self.use_abstractive and self.abstractive_summarizer}")
+        print("=" * 70 + "\n")
+
         # Use mBART for better topic labels if available
         if self.use_abstractive and self.abstractive_summarizer:
             logger.info(f"\n   🔄 Generiere bessere Topic-Labels mit mBART...")
@@ -398,20 +419,39 @@ class BERTopicSentimentAnalyzer:
             step_start = time.time()
             topic_ids = [tid for tid in set(topics) if tid != -1]
 
+            # Track timing for each topic
+            topic_times = []
             for topic_id in tqdm(topic_ids, desc="      Topic Labels", disable=not TQDM_AVAILABLE):
                 # Get topic keywords and representative documents
                 topic_words = self.topic_model.get_topic(topic_id)
                 representative_docs = [article_texts[i] for i, t in enumerate(topics) if t == topic_id][:3]
 
                 if topic_words:
-                    # Generate concise label with mBART
-                    label = self.abstractive_summarizer.generate_topic_label(
-                        keywords=topic_words,
-                        representative_docs=representative_docs,
-                        source_lang="de_DE",
-                        max_keywords=3
-                    )
-                    topic_labels[topic_id] = label
+                    try:
+                        # Generate concise label with mBART
+                        topic_start = time.time()
+                        print(f"\n🔍 Calling mBART for topic {topic_id}...")
+                        print(f"   Keywords: {topic_words[:3]}")
+                        print(f"   Docs: {len(representative_docs)}")
+
+                        label = self.abstractive_summarizer.generate_topic_label(
+                            keywords=topic_words,
+                            representative_docs=representative_docs,
+                            source_lang="de_DE",
+                            max_keywords=3
+                        )
+
+                        topic_time = time.time() - topic_start
+                        topic_times.append(topic_time)
+                        print(f"   Generated label: '{label}' (took {topic_time:.2f}s)")
+                        topic_labels[topic_id] = label
+                    except Exception as e:
+                        print(f"   ❌ ERROR in generate_topic_label: {e}")
+                        import traceback
+                        traceback.print_exc()
+                        # Fallback to keywords
+                        top_words = [word for word, _ in topic_words[:3]]
+                        topic_labels[topic_id] = " & ".join(top_words).capitalize()
                 else:
                     topic_labels[topic_id] = f"Topic {topic_id}"
 
@@ -458,6 +498,10 @@ class BERTopicSentimentAnalyzer:
         logger.info(f"   💭 {total_comments} Kommentare mit BERT Multilingual Model...")
         step_start = time.time()
 
+        # Track comment processing timing
+        comment_times = []
+        processed_comments = 0
+
         if self.sentiment_analyzer:
             for idx, article in tqdm(enumerate(articles_data), total=len(articles_data), desc="      Comments", disable=not TQDM_AVAILABLE):
                 url = article.get('url', '')
@@ -482,10 +526,22 @@ class BERTopicSentimentAnalyzer:
                     date = comment_obj.get('date', '')
 
                     if comment_text:
-                        # Analyze sentiment
+                        # Analyze sentiment with timing
+                        comment_start = time.time()
                         sentiment_result = self.sentiment_analyzer.analyze(comment_text)
+                        comment_time = time.time() - comment_start
+                        comment_times.append(comment_time)
+                        processed_comments += 1
+
                         sentiment_category = sentiment_result.get('category', 'unknown')
                         sentiment_score = sentiment_result.get('score', 0.0)
+
+                        # Log progress every 50 comments
+                        if processed_comments % 50 == 0:
+                            avg_time = sum(comment_times) / len(comment_times)
+                            remaining = total_comments - processed_comments
+                            est_remaining = avg_time * remaining
+                            print(f"      Progress: {processed_comments}/{total_comments} Kommentare | Avg: {avg_time*1000:.1f}ms/Kommentar | ETA: {est_remaining:.1f}s")
 
                         # Aggregate sentiment counts per article
                         if sentiment_category == 'positive':
@@ -560,9 +616,9 @@ class BERTopicSentimentAnalyzer:
             output_file = Path(output_file)
 
         with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
-            # Sheet 1: Article Overview with Sentiment Aggregation
-            overview_df = articles_df[['url', 'title', 'summary', 'topic_label', 'topic']].copy()
-            overview_df.columns = ['URL', 'Title', 'Summary', 'Topic', 'Topic_ID']
+            # Sheet 1: Article Overview with Sentiment Aggregation (WITHOUT Summary)
+            overview_df = articles_df[['url', 'title', 'topic_label', 'topic']].copy()
+            overview_df.columns = ['URL', 'Title', 'Topic', 'Topic_ID']
 
             # Add sentiment aggregation columns
             if self.sentiment_analyzer and article_sentiments:
@@ -587,8 +643,8 @@ class BERTopicSentimentAnalyzer:
                     lambda url: article_sentiments.get(url, {}).get('neutral_count', 0)
                 )
 
-                # Reorder columns to match old format (with Summary added)
-                overview_df = overview_df[['URL', 'Title', 'Summary', 'Topic', 'Topic_ID', 'Avg_Sentiment', 'Rating',
+                # Reorder columns (WITHOUT Summary)
+                overview_df = overview_df[['URL', 'Title', 'Topic', 'Topic_ID', 'Avg_Sentiment', 'Rating',
                                           'Total_Comments', 'Positive_Count', 'Negative_Count', 'Neutral_Count']]
 
                 # Sort by sentiment score (highest first)
@@ -621,7 +677,10 @@ class BERTopicSentimentAnalyzer:
 
         logger.info(f"   ✓ Excel Report erstellt: {output_file}")
 
-        # Final summary
+        # Calculate total analysis time
+        total_analysis_time = time.time() - analysis_start_time
+
+        # Final summary with performance breakdown
         logger.info("\n" + "=" * 70)
         logger.info("FERTIG! Zusammenfassung:")
         logger.info("=" * 70)
@@ -629,7 +688,32 @@ class BERTopicSentimentAnalyzer:
         logger.info(f"✓ {n_topics} Topics gefunden")
         logger.info(f"✓ {total_comments} Kommentare analysiert")
         logger.info(f"✓ Report gespeichert: {output_file}")
+        logger.info(f"\n⏱️  PERFORMANCE BREAKDOWN:")
+        logger.info(f"   Gesamtzeit: {total_analysis_time/60:.1f} Minuten ({total_analysis_time:.1f}s)")
+
+        # Show detailed timing if available
+        if 'topic_times' in locals() and topic_times:
+            avg_topic = sum(topic_times) / len(topic_times)
+            total_topics_time = sum(topic_times)
+            logger.info(f"   └─ Topic Labels (mBART): {total_topics_time:.1f}s ({avg_topic:.1f}s/Topic, {len(topic_times)} Topics)")
+
+        if 'comment_times' in locals() and comment_times:
+            avg_comment = sum(comment_times) / len(comment_times)
+            total_comments_time = sum(comment_times)
+            logger.info(f"   └─ Comment Sentiment: {total_comments_time:.1f}s ({avg_comment*1000:.1f}ms/Kommentar, {len(comment_times)} Kommentare)")
+
+        logger.info(f"\n   💡 Hinweis: Summary-Spalte entfernt (nicht benötigt)")
+
         logger.info("=" * 70 + "\n")
+
+        # Flush all log handlers to ensure everything is written to file
+        for handler in logger.handlers:
+            handler.flush()
+        for handler in logging.getLogger().handlers:
+            handler.flush()
+
+        logger.info(f"\n📝 Logfile gespeichert: {log_file}")
+        print(f"\n📝 Logfile gespeichert: {log_file}")
 
         return output_file
 

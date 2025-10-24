@@ -154,7 +154,14 @@ class AbstractiveSummarizer:
         Returns:
             Concise topic label (e.g., "Homeoffice", "KI & Automatisierung", "Nachhaltigkeit")
         """
+        print("\n🔍 INSIDE generate_topic_label()...")
+        print(f"   Keywords: {keywords[:3] if keywords else 'None'}")
+        print(f"   Docs: {len(representative_docs) if representative_docs else 0}")
+        print(f"   source_lang: {source_lang}")
+        print(f"   max_keywords: {max_keywords}")
+
         if not keywords and not representative_docs:
+            print("   → Returning 'Sonstiges' (no keywords/docs)")
             return "Sonstiges"
 
         # Create context from keywords and representative docs
@@ -207,11 +214,17 @@ Antwort:"""
         # Clean up: Remove punctuation at the end, capitalize
         label = label.strip().rstrip('.,!?;:')
 
+        print(f"   Raw mBART output: '{label}'")
+        print(f"   Word count: {len(label.split())}")
+        print(f"   Max allowed: {max_keywords + 1}")
+
         # Fallback: If mBART generates too long or empty, use top keywords
         if not label or len(label.split()) > max_keywords + 1:
+            print(f"   ⚠️  Fallback triggered! Empty or too long")
             # Use top keywords as fallback
             top_words = [word.capitalize() for word, _ in keywords[:max_keywords]]
             label = " & ".join(top_words) if top_words else "Sonstiges"
+            print(f"   → Fallback label: '{label}'")
 
         return label
 

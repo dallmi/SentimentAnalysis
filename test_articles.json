@@ -1,0 +1,38 @@
+[
+  {
+    "url": "https://example.com/article1",
+    "title": "Wealth Management and Private Banking",
+    "content": "Our wealth management division focuses on high-net-worth clients. Private banking services include portfolio management and investment advisory.",
+    "comments": [
+      {
+        "text": "Great service!",
+        "author": "John",
+        "date": "2025-01-01"
+      }
+    ]
+  },
+  {
+    "url": "https://example.com/article2",
+    "title": "Client Referral Program Success",
+    "content": "Our referral program generated USD 923 million in net new money. Client relationships are key to business growth.",
+    "comments": [
+      {
+        "text": "Impressive results",
+        "author": "Jane",
+        "date": "2025-01-02"
+      }
+    ]
+  },
+  {
+    "url": "https://example.com/article3",
+    "title": "Digital Banking Transformation",
+    "content": "Digital transformation in banking sector. New mobile app for retail banking customers with enhanced security features.",
+    "comments": [
+      {
+        "text": "Love the new app",
+        "author": "Mike",
+        "date": "2025-01-03"
+      }
+    ]
+  }
+]
