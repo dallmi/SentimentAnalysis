@@ -164,9 +164,39 @@ class AbstractiveSummarizer:
             print("   → Returning 'Sonstiges' (no keywords/docs)")
             return "Sonstiges"
 
-        # Create context from keywords only (simpler is better for mBART)
-        top_keywords = [word for word, _ in keywords[:5]]
+        # Define stopwords FIRST (before using them)
+        stopwords = {
+            # English stopwords
+            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+            'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were',
+            'our', 'my', 'your', 'their', 'his', 'her',
+            'will', 'would', 'could', 'should',
+            'this', 'that', 'these', 'those', 'it', 'its',
+            # German stopwords (safety - shouldn't occur with forced English output)
+            'der', 'die', 'das', 'den', 'dem', 'des',
+            'ein', 'eine', 'einen', 'einem', 'einer',
+            'und', 'oder', 'aber', 'als', 'auch',
+            'bei', 'von', 'zu', 'mit', 'nach', 'für',
+            'auf', 'um', 'durch', 'über',
+            'es', 'sich', 'wird', 'werden',
+            # Company-specific
+            'ubs'
+        }
+
+        # Filter stopwords from BERTopic keywords BEFORE sending to mBART
+        # This prevents mBART from seeing stopwords in the input
+        filtered_keywords = [(word, score) for word, score in keywords if word.lower() not in stopwords]
+
+        # If all keywords were stopwords, use original keywords (fallback)
+        if not filtered_keywords:
+            print("   ⚠️  All keywords were stopwords! Using original keywords.")
+            filtered_keywords = keywords
+
+        # Take top 5 filtered keywords
+        top_keywords = [word for word, _ in filtered_keywords[:5]]
         keyword_text = ", ".join(top_keywords)
+
+        print(f"   Filtered keywords (stopwords removed): {top_keywords}")
 
         # Simple prompt - keywords can be in any language (German, English, etc.)
         # Always request English output for consistency
@@ -211,28 +241,8 @@ class AbstractiveSummarizer:
         # Clean up: Remove punctuation at the end
         raw_label = label.strip().rstrip('.,!?;:')
 
-        # Remove common stopwords/filler words that mBART sometimes generates
-        # Also remove company-specific words that are too generic
-        # Even though we force English output, include German stopwords as safety
-        stopwords = {
-            # English stopwords
-            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
-            'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were',
-            'our', 'my', 'your', 'their', 'his', 'her',
-            'will', 'would', 'could', 'should',
-            'this', 'that', 'these', 'those', 'it', 'its',
-            # German stopwords (safety - shouldn't occur with forced English output)
-            'der', 'die', 'das', 'den', 'dem', 'des',
-            'ein', 'eine', 'einen', 'einem', 'einer',
-            'und', 'oder', 'aber', 'als', 'auch',
-            'bei', 'von', 'zu', 'mit', 'nach', 'für',
-            'auf', 'um', 'durch', 'über',
-            'es', 'sich', 'wird', 'werden',
-            # Company-specific
-            'ubs'
-        }
-
-        # Filter out stopwords while preserving order
+        # Filter out stopwords from mBART output (reuse stopwords defined earlier)
+        # This catches any stopwords that mBART generated despite our input filtering
         words = raw_label.split()
         filtered_words = [w for w in words if w.lower() not in stopwords]
 
