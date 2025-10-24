@@ -168,9 +168,9 @@ class AbstractiveSummarizer:
         top_keywords = [word for word, _ in keywords[:5]]
         keyword_text = ", ".join(top_keywords)
 
-        # Simple English prompt works best with mBART
-        # Ask for very short topic label (1-3 words)
-        prompt = f"Topic keywords: {keyword_text}\n\nGenerate a concise topic label (1-3 words):\n"
+        # Simple prompt - keywords can be in any language (German, English, etc.)
+        # Always request English output for consistency
+        prompt = f"Keywords: {keyword_text}\n\nTopic label in English (1-3 words):"
 
         # Generate with mBART (shorter output for keywords)
         inputs = self.tokenizer(
@@ -181,10 +181,14 @@ class AbstractiveSummarizer:
         )
         inputs = inputs.to(self.device)
 
-        # Use English as source language for better results
-        self.tokenizer.src_lang = "en_XX"
+        # IMPORTANT: Accept input in source_lang (could be de_DE, en_XX, etc.)
+        # But FORCE output to English via forced_bos_token_id
+        self.tokenizer.src_lang = source_lang  # Accept any input language
 
         # Generate very short label (max 10 tokens for 1-3 keywords)
+        # mBART-large-50 supports 50+ languages for BOTH input and output
+        # We accept German/English/etc keywords as input (via source_lang)
+        # But ALWAYS generate English output (via forced_bos_token_id)
         label_ids = self.model.generate(
             inputs["input_ids"],
             max_length=10,  # Much shorter - only 1-3 words
@@ -192,7 +196,7 @@ class AbstractiveSummarizer:
             num_beams=4,
             length_penalty=0.3,  # Strongly favor shorter outputs
             early_stopping=True,
-            forced_bos_token_id=self.tokenizer.lang_code_to_id["en_XX"],
+            forced_bos_token_id=self.tokenizer.lang_code_to_id["en_XX"],  # ALWAYS output English
             no_repeat_ngram_size=2,
             repetition_penalty=2.0  # Avoid repetition
         )
