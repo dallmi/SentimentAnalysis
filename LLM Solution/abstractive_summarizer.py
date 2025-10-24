@@ -208,10 +208,31 @@ class AbstractiveSummarizer:
             clean_up_tokenization_spaces=True
         )
 
-        # Clean up: Remove punctuation at the end, capitalize
-        label = label.strip().rstrip('.,!?;:')
+        # Clean up: Remove punctuation at the end
+        raw_label = label.strip().rstrip('.,!?;:')
 
-        print(f"   Raw mBART output: '{label}'")
+        # Remove common stopwords/filler words that mBART sometimes generates
+        stopwords = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+                     'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were',
+                     'our', 'will', 'this', 'that', 'these', 'those', 'it', 'its'}
+
+        # Filter out stopwords while preserving order
+        words = raw_label.split()
+        filtered_words = [w for w in words if w.lower() not in stopwords]
+
+        # If filtering removed everything, keep original
+        if filtered_words:
+            label = ' '.join(filtered_words)
+        else:
+            label = raw_label
+
+        # Capitalize each word for consistency (Title Case)
+        label = ' '.join(word.capitalize() for word in label.split())
+
+        # Show before/after if stopwords were removed
+        print(f"   Raw mBART output: '{raw_label}'")
+        if raw_label != label:
+            print(f"   After stopword removal: '{label}'")
         print(f"   Word count: {len(label.split())}")
         print(f"   Max allowed words: {max_keywords + 1}")
 
