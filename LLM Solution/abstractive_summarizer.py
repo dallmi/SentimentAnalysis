@@ -164,44 +164,37 @@ class AbstractiveSummarizer:
             print("   → Returning 'Sonstiges' (no keywords/docs)")
             return "Sonstiges"
 
-        # Create context from keywords and representative docs
-        top_keywords = [word for word, _ in keywords[:10]]
+        # Create context from keywords only (simpler is better for mBART)
+        top_keywords = [word for word, _ in keywords[:5]]
         keyword_text = ", ".join(top_keywords)
 
-        # Sample representative documents (max 3 for context)
-        doc_samples = representative_docs[:3] if representative_docs else []
-        doc_text = " ".join(doc_samples[:200])  # Limit to first 200 chars per doc
-
-        # Create prompt for mBART
-        prompt = f"""Thema-Keywords: {keyword_text}
-
-Beispiel-Texte: {doc_text}
-
-Aufgabe: Erstelle ein prägnantes Thema-Label mit maximal {max_keywords} Schlagwörtern (keine vollständigen Sätze).
-Format: Einzelwort (z.B. "Homeoffice") oder 2-3 Wörter mit & (z.B. "KI & Automatisierung" oder "Work-Life-Balance").
-Antwort:"""
+        # Simple English prompt works best with mBART
+        # Ask for very short topic label (1-3 words)
+        prompt = f"Topic keywords: {keyword_text}\n\nGenerate a concise topic label (1-3 words):\n"
 
         # Generate with mBART (shorter output for keywords)
         inputs = self.tokenizer(
             prompt,
-            max_length=512,
+            max_length=256,  # Shorter input
             truncation=True,
             return_tensors="pt"
         )
         inputs = inputs.to(self.device)
 
-        self.tokenizer.src_lang = source_lang
+        # Use English as source language for better results
+        self.tokenizer.src_lang = "en_XX"
 
-        # Generate short label (max 20 tokens for 1-3 keywords)
+        # Generate very short label (max 10 tokens for 1-3 keywords)
         label_ids = self.model.generate(
             inputs["input_ids"],
-            max_length=20,
-            min_length=2,
-            num_beams=3,
-            length_penalty=0.5,  # Favor shorter outputs
+            max_length=10,  # Much shorter - only 1-3 words
+            min_length=1,
+            num_beams=4,
+            length_penalty=0.3,  # Strongly favor shorter outputs
             early_stopping=True,
-            forced_bos_token_id=self.tokenizer.lang_code_to_id[source_lang],
-            no_repeat_ngram_size=2
+            forced_bos_token_id=self.tokenizer.lang_code_to_id["en_XX"],
+            no_repeat_ngram_size=2,
+            repetition_penalty=2.0  # Avoid repetition
         )
 
         # Decode label
@@ -216,11 +209,18 @@ Antwort:"""
 
         print(f"   Raw mBART output: '{label}'")
         print(f"   Word count: {len(label.split())}")
-        print(f"   Max allowed: {max_keywords + 1}")
+        print(f"   Max allowed words: {max_keywords + 1}")
 
         # Fallback: If mBART generates too long or empty, use top keywords
-        if not label or len(label.split()) > max_keywords + 1:
-            print(f"   ⚠️  Fallback triggered! Empty or too long")
+        if not label:
+            print(f"   ⚠️  Fallback triggered! Output is EMPTY")
+            # Use top keywords as fallback
+            top_words = [word.capitalize() for word, _ in keywords[:max_keywords]]
+            label = " & ".join(top_words) if top_words else "Sonstiges"
+            print(f"   → Fallback label: '{label}'")
+        elif len(label.split()) > max_keywords + 1:
+            print(f"   ⚠️  Fallback triggered! Output too long ({len(label.split())} words > {max_keywords + 1})")
+            print(f"   → Too long output was: '{label}'")
             # Use top keywords as fallback
             top_words = [word.capitalize() for word, _ in keywords[:max_keywords]]
             label = " & ".join(top_words) if top_words else "Sonstiges"
