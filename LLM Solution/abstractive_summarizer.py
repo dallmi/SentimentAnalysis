@@ -198,14 +198,43 @@ class AbstractiveSummarizer:
 
         print(f"   Filtered keywords (stopwords removed): {top_keywords}")
 
-        # Simple prompt - keywords can be in any language (German, English, etc.)
-        # Always request English output for consistency
-        prompt = f"Keywords: {keyword_text}\n\nTopic label in English (1-3 words):"
+        # Build prompt with representative documents for better context
+        # Use first 1000 characters from each of the top 3 representative docs
+        # This gives mBART real context instead of just keywords
+        prompt_parts = []
 
-        # Generate with mBART (shorter output for keywords)
+        if representative_docs and len(representative_docs) > 0:
+            prompt_parts.append("Representative documents for this topic:\n")
+
+            # Take up to 3 representative docs
+            for i, doc in enumerate(representative_docs[:3], 1):
+                # Take first 1000 characters (enough for context, fits in token limit)
+                doc_excerpt = doc[:1000].strip()
+                if doc_excerpt:
+                    # Clean up: remove extra whitespace/newlines
+                    doc_excerpt = ' '.join(doc_excerpt.split())
+                    prompt_parts.append(f"{i}. '{doc_excerpt}...'\n")
+
+            prompt_parts.append(f"\nKeywords: {keyword_text}\n")
+            print(f"   Using {min(3, len(representative_docs))} representative docs (1000 chars each) for context")
+        else:
+            # Fallback: just use keywords if no docs available
+            prompt_parts.append(f"Keywords: {keyword_text}\n")
+            print(f"   No representative docs available, using keywords only")
+
+        prompt_parts.append("\nGenerate a concise topic label in English (1-3 words):")
+        prompt = "".join(prompt_parts)
+
+        # Debug: Show the prompt (truncated for readability)
+        prompt_preview = prompt[:500] + "..." if len(prompt) > 500 else prompt
+        print(f"   📝 Prompt preview (first 500 chars):\n{prompt_preview}\n")
+        print(f"   Total prompt length: {len(prompt)} characters (~{len(prompt)//4} tokens)")
+
+        # Generate with mBART
+        # Now with more input tokens (up to 3 docs × 1000 chars ≈ 750 tokens)
         inputs = self.tokenizer(
             prompt,
-            max_length=256,  # Shorter input
+            max_length=1024,  # Increased to handle 3 docs + keywords
             truncation=True,
             return_tensors="pt"
         )
