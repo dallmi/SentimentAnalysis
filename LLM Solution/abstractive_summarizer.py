@@ -213,10 +213,24 @@ class AbstractiveSummarizer:
 
         # Remove common stopwords/filler words that mBART sometimes generates
         # Also remove company-specific words that are too generic
-        stopwords = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
-                     'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were',
-                     'our', 'will', 'this', 'that', 'these', 'those', 'it', 'its',
-                     'ubs'}  # Company name - too generic for topic labels
+        # Even though we force English output, include German stopwords as safety
+        stopwords = {
+            # English stopwords
+            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+            'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were',
+            'our', 'my', 'your', 'their', 'his', 'her',
+            'will', 'would', 'could', 'should',
+            'this', 'that', 'these', 'those', 'it', 'its',
+            # German stopwords (safety - shouldn't occur with forced English output)
+            'der', 'die', 'das', 'den', 'dem', 'des',
+            'ein', 'eine', 'einen', 'einem', 'einer',
+            'und', 'oder', 'aber', 'als', 'auch',
+            'bei', 'von', 'zu', 'mit', 'nach', 'für',
+            'auf', 'um', 'durch', 'über',
+            'es', 'sich', 'wird', 'werden',
+            # Company-specific
+            'ubs'
+        }
 
         # Filter out stopwords while preserving order
         words = raw_label.split()
