@@ -303,21 +303,33 @@ class BERTopicSentimentAnalyzer:
             logger.info("   🎯 Verwendung: Extrahiert 3 beste Sätze aus Artikeln")
             logger.info("   ⚙️  Methode: Cosine Similarity mit Sentence Embeddings")
 
-        # CRITICAL DEBUG: Print to console (logging might be broken)
-        print("\n" + "=" * 70)
-        print("🔍 CRITICAL DEBUG AFTER INITIALIZATION:")
-        print(f"   self.use_abstractive = {self.use_abstractive}")
-        print(f"   self.abstractive_summarizer = {self.abstractive_summarizer}")
-        print(f"   Type: {type(self.abstractive_summarizer)}")
+        # CRITICAL DEBUG: Print to console AND log file
+        debug_msg = [
+            "\n" + "=" * 70,
+            "🔍 CRITICAL DEBUG AFTER INITIALIZATION:",
+            f"   self.use_abstractive = {self.use_abstractive}",
+            f"   self.abstractive_summarizer = {self.abstractive_summarizer}",
+            f"   Type: {type(self.abstractive_summarizer)}"
+        ]
+
         if self.use_abstractive and self.abstractive_summarizer:
-            print(f"\n   ✅ mBART GELADEN - Verwendung:")
-            print(f"      - Article Summaries: ENTFERNT (nicht benötigt)")
-            print(f"      - Topic Labels: JA (bessere Labels als BERTopic Keywords)")
+            debug_msg.extend([
+                "\n   ✅ mBART GELADEN - Verwendung:",
+                "      - Article Summaries: ENTFERNT (nicht benötigt)",
+                "      - Topic Labels: JA (bessere Labels als BERTopic Keywords)"
+            ])
         else:
-            print(f"\n   ⚠️  mBART NICHT GELADEN - Verwendung:")
-            print(f"      - Article Summaries: ENTFERNT (nicht benötigt)")
-            print(f"      - Topic Labels: BERTopic Keywords (z.B. 'Kudos & It & Ubs')")
-        print("=" * 70 + "\n")
+            debug_msg.extend([
+                "\n   ⚠️  mBART NICHT GELADEN - Verwendung:",
+                "      - Article Summaries: ENTFERNT (nicht benötigt)",
+                "      - Topic Labels: BERTopic Keywords (z.B. 'Kudos & It & Ubs')"
+            ])
+        debug_msg.append("=" * 70 + "\n")
+
+        # Print to console AND write to log
+        for line in debug_msg:
+            print(line)
+            logger.info(line)
 
         logger.info("\n" + "=" * 70)
         logger.info("Initialisierung abgeschlossen!")
@@ -369,11 +381,18 @@ class BERTopicSentimentAnalyzer:
         min_length = min(article_lengths)
         logger.info(f"   ✓ {len(article_texts)} Texte vorbereitet")
         logger.info(f"   📏 Artikel-Länge: Avg={avg_length:.0f} Zeichen, Min={min_length}, Max={max_length}")
-        print(f"\n📊 ARTIKEL-LÄNGEN STATISTIK:")
-        print(f"   Durchschnitt: {avg_length:.0f} Zeichen ({avg_length/4:.0f} Wörter)")
-        print(f"   Kürzester: {min_length} Zeichen")
-        print(f"   Längster: {max_length} Zeichen")
-        print(f"   → BERTopic verwendet den KOMPLETTEN Text für Clustering!")
+
+        # Print AND log article statistics
+        stats_msg = [
+            "\n📊 ARTIKEL-LÄNGEN STATISTIK:",
+            f"   Durchschnitt: {avg_length:.0f} Zeichen ({avg_length/4:.0f} Wörter)",
+            f"   Kürzester: {min_length} Zeichen",
+            f"   Längster: {max_length} Zeichen",
+            "   → BERTopic verwendet den KOMPLETTEN Text für Clustering!"
+        ]
+        for line in stats_msg:
+            print(line)
+            logger.info(line)
 
         # SKIP SUMMARY GENERATION completely - not needed
         logger.info(f"\n   ⚡ SKIP: Summary-Spalte komplett entfernt (nicht benötigt)")
@@ -430,9 +449,16 @@ class BERTopicSentimentAnalyzer:
                     try:
                         # Generate concise label with mBART
                         topic_start = time.time()
-                        print(f"\n🔍 Calling mBART for topic {topic_id}...")
-                        print(f"   Keywords: {topic_words[:3]}")
-                        print(f"   Docs: {len(representative_docs)}")
+
+                        # Log debug info
+                        debug_lines = [
+                            f"\n🔍 Calling mBART for topic {topic_id}...",
+                            f"   Keywords: {topic_words[:3]}",
+                            f"   Docs: {len(representative_docs)}"
+                        ]
+                        for line in debug_lines:
+                            print(line)
+                            logger.info(line)
 
                         label = self.abstractive_summarizer.generate_topic_label(
                             keywords=topic_words,
@@ -443,12 +469,19 @@ class BERTopicSentimentAnalyzer:
 
                         topic_time = time.time() - topic_start
                         topic_times.append(topic_time)
-                        print(f"   Generated label: '{label}' (took {topic_time:.2f}s)")
+
+                        result_msg = f"   Generated label: '{label}' (took {topic_time:.2f}s)"
+                        print(result_msg)
+                        logger.info(result_msg)
+
                         topic_labels[topic_id] = label
                     except Exception as e:
-                        print(f"   ❌ ERROR in generate_topic_label: {e}")
+                        error_msg = f"   ❌ ERROR in generate_topic_label: {e}"
+                        print(error_msg)
+                        logger.error(error_msg)
                         import traceback
                         traceback.print_exc()
+                        logger.error(traceback.format_exc())
                         # Fallback to keywords
                         top_words = [word for word, _ in topic_words[:3]]
                         topic_labels[topic_id] = " & ".join(top_words).capitalize()
@@ -541,7 +574,9 @@ class BERTopicSentimentAnalyzer:
                             avg_time = sum(comment_times) / len(comment_times)
                             remaining = total_comments - processed_comments
                             est_remaining = avg_time * remaining
-                            print(f"      Progress: {processed_comments}/{total_comments} Kommentare | Avg: {avg_time*1000:.1f}ms/Kommentar | ETA: {est_remaining:.1f}s")
+                            progress_msg = f"      Progress: {processed_comments}/{total_comments} Kommentare | Avg: {avg_time*1000:.1f}ms/Kommentar | ETA: {est_remaining:.1f}s"
+                            print(progress_msg)
+                            logger.info(progress_msg)
 
                         # Aggregate sentiment counts per article
                         if sentiment_category == 'positive':
