@@ -212,9 +212,11 @@ class AbstractiveSummarizer:
         raw_label = label.strip().rstrip('.,!?;:')
 
         # Remove common stopwords/filler words that mBART sometimes generates
+        # Also remove company-specific words that are too generic
         stopwords = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
                      'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were',
-                     'our', 'will', 'this', 'that', 'these', 'those', 'it', 'its'}
+                     'our', 'will', 'this', 'that', 'these', 'those', 'it', 'its',
+                     'ubs'}  # Company name - too generic for topic labels
 
         # Filter out stopwords while preserving order
         words = raw_label.split()
